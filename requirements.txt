@@ -2,4 +2,3 @@ gymnasium
 numpy
 matplotlib
 pandas
-pytest

@@ -5,6 +5,7 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if ROOT_DIR not in sys.path:
@@ -22,7 +23,7 @@ def save_demo_episode(env: SmartGridEnv, agent: QLearningAgent, output_path: str
     state, _ = env.reset(seed=TRAINING_CONFIG["seed"])
     done = False
     step_num = 0
-    lines = []
+    rows = []
 
     action_names = {
         0: "use battery",
@@ -36,29 +37,33 @@ def save_demo_episode(env: SmartGridEnv, agent: QLearningAgent, output_path: str
         next_state, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
 
-        lines.append(f"Step {step_num}")
-        lines.append(f"Current state: {tuple(state)}")
-        lines.append(f"Action: {action} ({action_names[action]})")
-        lines.append(f"Reward: {reward:.2f}")
-        lines.append(f"Demand: {info['demand']}")
-        lines.append(f"Renewable: {info['renewable']}")
-        lines.append(f"Covered demand: {info['demand_covered']}")
-        lines.append(f"Unmet demand: {info['unmet_demand']}")
-        lines.append(f"Grid purchase: {info['grid_bought']}")
-        lines.append(f"Battery used: {info['battery_used']}")
-        lines.append(f"Stored energy: {info['stored']}")
-        lines.append(f"Sold energy: {info['sold']}")
-        lines.append(f"Final battery level for the step: {info['battery_level']}")
-        lines.append(f"Next state: {tuple(next_state)}")
-        lines.append("-" * 50)
+        rows.append(
+            {
+                "step": step_num,
+                "state": tuple(state),
+                "action": action,
+                "action_name": action_names[action],
+                "reward": reward,
+                "demand": info["demand"],
+                "renewable": info["renewable"],
+                "covered_demand": info["demand_covered"],
+                "unmet_demand": info["unmet_demand"],
+                "grid_purchase": info["grid_bought"],
+                "battery_used": info["battery_used"],
+                "stored_energy": info["stored"],
+                "sold_energy": info["sold"],
+                "battery_level": info["battery_level"],
+                "next_state": tuple(next_state),
+            }
+        )
 
         state = next_state
         step_num += 1
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+    df = pd.DataFrame(rows)
+    df.to_csv(output_path, index=False, encoding="utf-8")
 
     agent.epsilon = original_epsilon
 
@@ -111,10 +116,10 @@ def train():
     print(f"Overall average reward: {np.mean(rewards_history):.2f}")
 
     plot_path = os.path.join(ROOT_DIR, "results", "plots", "training_rewards.png")
-    log_path = os.path.join(ROOT_DIR, "results", "logs", "demo_episode.txt")
+    csv_path = os.path.join(ROOT_DIR, "results", "logs", "demo_episode.csv")
 
     os.makedirs(os.path.dirname(plot_path), exist_ok=True)
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    os.makedirs(os.path.dirname(csv_path), exist_ok=True)
 
     plt.figure(figsize=(10, 5))
     plt.plot(rewards_history)
@@ -125,10 +130,10 @@ def train():
     plt.savefig(plot_path)
     plt.close()
 
-    save_demo_episode(env, agent, log_path)
+    save_demo_episode(env, agent, csv_path)
 
     print(f"Plot saved to: {plot_path}")
-    print(f"Demo episode saved to: {log_path}")
+    print(f"Demo episode DataFrame saved to: {csv_path}")
 
     return agent, rewards_history
 
