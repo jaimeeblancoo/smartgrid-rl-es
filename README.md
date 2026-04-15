@@ -1,51 +1,105 @@
 # SmartGrid-ES
 
-Proyecto académico de **aprendizaje por refuerzo con Gymnasium** para gestionar una **micro-red eléctrica inspirada en el sistema energético español**.
+Academic reinforcement learning project using Gymnasium to model a simplified electrical microgrid inspired by a smart grid.
 
-El objetivo es entrenar un agente capaz de tomar decisiones inteligentes sobre generación, almacenamiento, compra y venta de energía en un entorno estocástico, teniendo en cuenta factores como la producción renovable, la demanda, la climatología y el uso de fuentes de respaldo.
+## V1 goal
 
----
+This first version aims to validate the base architecture of the project with a small, functional, and extensible implementation. At this stage, we are not trying to build a fully realistic smart grid yet, but rather a discrete demo that already includes:
 
-## Objetivo del proyecto
+- a Gymnasium environment
+- a tabular Q-learning agent
+- an episode-based training script
+- basic results
+- a clean repository structure
 
-Desarrollar un entorno de simulación en Python usando **Gymnasium** en el que un agente de **Reinforcement Learning (RL)** aprenda a gestionar una micro-red compuesta por distintas fuentes de energía y sistemas de almacenamiento.
+## What this version does
 
-El sistema estará inspirado en elementos reales del mix energético español, incluyendo:
+The environment represents a simplified microgrid where, at each step, the agent observes:
 
-- Energía solar
-- Energía eólica
-- Hidráulica / bombeo
-- Baterías modulares
-- Ciclos combinados
-- Nuclear
-- Demanda variable
-- Compra y venta de energía al mercado
+- battery level
+- demand level
+- renewable generation level
+- time period of the day
 
-El agente deberá aprender una política que permita:
+Based on that state, the agent chooses between four actions:
 
-- Cubrir la demanda energética
-- Maximizar el uso de renovables
-- Minimizar costes
-- Evitar colapsos o déficits de suministro
-- Gestionar correctamente las reservas energéticas
+- use battery
+- buy energy from the grid
+- store surplus
+- sell surplus
 
----
+The reward encourages covering demand and penalizes leaving demand unmet or relying too much on the grid.
 
-## Características principales
+## Technologies
 
-- Entorno desarrollado con **Gymnasium**
-- Entrenamiento de agentes mediante **aprendizaje por refuerzo**
-- Simulación de variables climatológicas:
-  - radiación solar
-  - viento
-  - nubosidad
-  - estaciones del año
-- Inclusión de sistemas de almacenamiento:
-  - baterías
-  - bombeo hidráulico
-- Fuentes de respaldo realistas
-- Entorno estocástico con incertidumbre en generación, precios y demanda
-- Comparación entre distintas versiones del proyecto:
-  1. entorno prediseñado de Gymnasium
-  2. versión con wrappers
-  3. entorno propio
+- Python
+- Gymnasium
+- NumPy
+- Matplotlib
+
+## Repository structure
+
+```text
+smartgrid-rl-es/
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── src/
+│   ├── __init__.py
+│   ├── envs/
+│   │   ├── __init__.py
+│   │   └── smartgrid_env.py
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   └── qlearning_agent.py
+│   ├── training/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   └── train.py
+│   └── utils/
+│       ├── __init__.py
+│       └── plotting.py
+└── results/
+    └── plots/
+```
+
+## Installation
+
+```bash
+git clone <REPOSITORY_URL>
+cd smartgrid-rl-es
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+On Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+## Running the project
+
+From the project root:
+
+```bash
+python -m src.training.train
+```
+
+## Expected output
+
+During training, the script prints:
+
+- average reward every 100 episodes
+- average percentage of demand covered
+- average grid purchase
+- current epsilon value
+
+It also saves a plot at:
+
+```text
+results/plots/training_rewards.png
+```
