@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -60,6 +61,19 @@ def train():
 
     print("\nEntrenamiento terminado.")
     print(f"Recompensa media total: {np.mean(rewards_history):.2f}")
+
+    plot_path = os.path.join(ROOT_DIR, "results", "plots", "training_rewards.png")
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(rewards_history)
+    plt.title("Training rewards")
+    plt.xlabel("Episode")
+    plt.ylabel("Total reward")
+    plt.tight_layout()
+    plt.savefig(plot_path)
+    plt.close()
+
+    print(f"Gráfica guardada en: {plot_path}")
 
     return agent, rewards_history
 
