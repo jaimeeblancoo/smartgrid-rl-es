@@ -9,7 +9,7 @@ This first version aims to validate the base architecture of the project with a 
 - a Gymnasium environment
 - a tabular Q-learning agent
 - an episode-based training script
-- basic results
+- basic saved results
 - a clean repository structure
 
 ## What this version does
@@ -57,10 +57,11 @@ smartgrid-rl-es/
 │   │   ├── config.py
 │   │   └── train.py
 │   └── utils/
-│       ├── __init__.py
-│       └── plotting.py
-└── results/
-    └── plots/
+├── results/
+│   ├── plots/
+│   │   └── .gitkeep
+│   └── logs/
+│       └── .gitkeep
 ```
 
 ## Installation
@@ -89,17 +90,32 @@ From the project root:
 python -m src.training.train
 ```
 
-## Expected output
+You can also run it with:
+
+```bash
+python src/training/train.py
+```
+
+## Saved outputs
+
+When training finishes, the program stores the generated results locally on disk.
+
+Saved files:
+
+- training reward plot:
+  - `results/plots/training_rewards.png`
+- demo episode log with step-by-step agent decisions:
+  - `results/logs/demo_episode.txt`
+
+The script creates the output folders automatically if they do not exist.
+
+These generated files are local execution outputs and are not intended to be tracked in Git.
+
+## Console output
 
 During training, the script prints:
 
 - average reward every 100 episodes
-- average percentage of demand covered
-- average grid purchase
 - current epsilon value
-
-It also saves a plot at:
-
-```text
-results/plots/training_rewards.png
-```
+- final average reward
+- saved output paths
