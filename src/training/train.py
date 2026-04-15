@@ -15,6 +15,52 @@ from src.envs.smartgrid_env import SmartGridEnv
 from src.training.config import TRAINING_CONFIG
 
 
+def save_demo_episode(env: SmartGridEnv, agent: QLearningAgent, output_path: str) -> None:
+    original_epsilon = agent.epsilon
+    agent.epsilon = 0.0
+
+    state, _ = env.reset(seed=TRAINING_CONFIG["seed"])
+    done = False
+    step_num = 0
+    lines = []
+
+    action_names = {
+        0: "usar batería",
+        1: "comprar a la red",
+        2: "almacenar excedente",
+        3: "vender excedente",
+    }
+
+    while not done:
+        action = agent.choose_action(state)
+        next_state, reward, terminated, truncated, info = env.step(action)
+        done = terminated or truncated
+
+        lines.append(f"Paso {step_num}")
+        lines.append(f"Estado actual: {tuple(state)}")
+        lines.append(f"Acción: {action} ({action_names[action]})")
+        lines.append(f"Recompensa: {reward:.2f}")
+        lines.append(f"Demanda: {info['demand']}")
+        lines.append(f"Renovable: {info['renewable']}")
+        lines.append(f"Demanda cubierta: {info['demand_covered']}")
+        lines.append(f"Demanda no cubierta: {info['unmet_demand']}")
+        lines.append(f"Compra a red: {info['grid_bought']}")
+        lines.append(f"Batería usada: {info['battery_used']}")
+        lines.append(f"Energía almacenada: {info['stored']}")
+        lines.append(f"Energía vendida: {info['sold']}")
+        lines.append(f"Nivel de batería final del paso: {info['battery_level']}")
+        lines.append(f"Siguiente estado: {tuple(next_state)}")
+        lines.append("-" * 50)
+
+        state = next_state
+        step_num += 1
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+    agent.epsilon = original_epsilon
+
+
 def train():
     env = SmartGridEnv(
         max_steps=TRAINING_CONFIG["max_steps_per_episode"],
@@ -63,6 +109,7 @@ def train():
     print(f"Recompensa media total: {np.mean(rewards_history):.2f}")
 
     plot_path = os.path.join(ROOT_DIR, "results", "plots", "training_rewards.png")
+    log_path = os.path.join(ROOT_DIR, "results", "logs", "demo_episode.txt")
 
     plt.figure(figsize=(10, 5))
     plt.plot(rewards_history)
@@ -73,7 +120,10 @@ def train():
     plt.savefig(plot_path)
     plt.close()
 
+    save_demo_episode(env, agent, log_path)
+
     print(f"Gráfica guardada en: {plot_path}")
+    print(f"Episodio demo guardado en: {log_path}")
 
     return agent, rewards_history
 
