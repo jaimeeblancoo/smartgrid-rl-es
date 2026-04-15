@@ -55,6 +55,8 @@ def save_demo_episode(env: SmartGridEnv, agent: QLearningAgent, output_path: str
         state = next_state
         step_num += 1
 
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
@@ -110,6 +112,9 @@ def train():
 
     plot_path = os.path.join(ROOT_DIR, "results", "plots", "training_rewards.png")
     log_path = os.path.join(ROOT_DIR, "results", "logs", "demo_episode.txt")
+
+    os.makedirs(os.path.dirname(plot_path), exist_ok=True)
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     plt.figure(figsize=(10, 5))
     plt.plot(rewards_history)

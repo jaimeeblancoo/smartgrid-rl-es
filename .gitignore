@@ -1,4 +1,9 @@
 .venv/
 __pycache__/
 *.pyc
-results/plots/
+
+results/plots/*
+results/logs/*
+
+!results/plots/.gitkeep
+!results/logs/.gitkeep
