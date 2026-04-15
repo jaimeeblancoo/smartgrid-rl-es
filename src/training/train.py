@@ -25,10 +25,10 @@ def save_demo_episode(env: SmartGridEnv, agent: QLearningAgent, output_path: str
     lines = []
 
     action_names = {
-        0: "usar batería",
-        1: "comprar a la red",
-        2: "almacenar excedente",
-        3: "vender excedente",
+        0: "use battery",
+        1: "buy from grid",
+        2: "store surplus",
+        3: "sell surplus",
     }
 
     while not done:
@@ -36,20 +36,20 @@ def save_demo_episode(env: SmartGridEnv, agent: QLearningAgent, output_path: str
         next_state, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
 
-        lines.append(f"Paso {step_num}")
-        lines.append(f"Estado actual: {tuple(state)}")
-        lines.append(f"Acción: {action} ({action_names[action]})")
-        lines.append(f"Recompensa: {reward:.2f}")
-        lines.append(f"Demanda: {info['demand']}")
-        lines.append(f"Renovable: {info['renewable']}")
-        lines.append(f"Demanda cubierta: {info['demand_covered']}")
-        lines.append(f"Demanda no cubierta: {info['unmet_demand']}")
-        lines.append(f"Compra a red: {info['grid_bought']}")
-        lines.append(f"Batería usada: {info['battery_used']}")
-        lines.append(f"Energía almacenada: {info['stored']}")
-        lines.append(f"Energía vendida: {info['sold']}")
-        lines.append(f"Nivel de batería final del paso: {info['battery_level']}")
-        lines.append(f"Siguiente estado: {tuple(next_state)}")
+        lines.append(f"Step {step_num}")
+        lines.append(f"Current state: {tuple(state)}")
+        lines.append(f"Action: {action} ({action_names[action]})")
+        lines.append(f"Reward: {reward:.2f}")
+        lines.append(f"Demand: {info['demand']}")
+        lines.append(f"Renewable: {info['renewable']}")
+        lines.append(f"Covered demand: {info['demand_covered']}")
+        lines.append(f"Unmet demand: {info['unmet_demand']}")
+        lines.append(f"Grid purchase: {info['grid_bought']}")
+        lines.append(f"Battery used: {info['battery_used']}")
+        lines.append(f"Stored energy: {info['stored']}")
+        lines.append(f"Sold energy: {info['sold']}")
+        lines.append(f"Final battery level for the step: {info['battery_level']}")
+        lines.append(f"Next state: {tuple(next_state)}")
         lines.append("-" * 50)
 
         state = next_state
@@ -102,13 +102,13 @@ def train():
         if (episode + 1) % 100 == 0:
             avg_reward = np.mean(rewards_history[-100:])
             print(
-                f"Episodio {episode + 1} | "
-                f"Recompensa media (últimos 100): {avg_reward:.2f} | "
+                f"Episode {episode + 1} | "
+                f"Average reward (last 100): {avg_reward:.2f} | "
                 f"Epsilon: {agent.epsilon:.3f}"
             )
 
-    print("\nEntrenamiento terminado.")
-    print(f"Recompensa media total: {np.mean(rewards_history):.2f}")
+    print("\nTraining finished.")
+    print(f"Overall average reward: {np.mean(rewards_history):.2f}")
 
     plot_path = os.path.join(ROOT_DIR, "results", "plots", "training_rewards.png")
     log_path = os.path.join(ROOT_DIR, "results", "logs", "demo_episode.txt")
@@ -127,8 +127,8 @@ def train():
 
     save_demo_episode(env, agent, log_path)
 
-    print(f"Gráfica guardada en: {plot_path}")
-    print(f"Episodio demo guardado en: {log_path}")
+    print(f"Plot saved to: {plot_path}")
+    print(f"Demo episode saved to: {log_path}")
 
     return agent, rewards_history
 

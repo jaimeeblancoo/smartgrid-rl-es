@@ -8,19 +8,19 @@ from gymnasium import spaces
 
 
 class SmartGridEnv(gym.Env):
-    """Entorno discreto y pequeño para la V1 de SmartGrid-ES.
+    """Small discrete environment for SmartGrid-ES V1.
 
-    Estado = (bateria, demanda, renovable, periodo)
-    - bateria: 0 baja, 1 media, 2 alta
-    - demanda: 0 baja, 1 media, 2 alta
-    - renovable: 0 baja, 1 media, 2 alta
-    - periodo: 0 mañana, 1 tarde, 2 noche
+    State = (battery, demand, renewable, period)
+    - battery: 0 low, 1 medium, 2 high
+    - demand: 0 low, 1 medium, 2 high
+    - renewable: 0 low, 1 medium, 2 high
+    - period: 0 morning, 1 afternoon, 2 night
 
-    Acciones:
-    - 0: usar batería para cubrir déficit
-    - 1: comprar energía a la red
-    - 2: almacenar excedente si lo hay
-    - 3: vender excedente
+    Actions:
+    - 0: use battery to cover deficit
+    - 1: buy energy from the grid
+    - 2: store surplus if available
+    - 3: sell surplus
     """
 
     metadata = {"render_modes": ["human"], "render_fps": 4}
@@ -92,7 +92,7 @@ class SmartGridEnv(gym.Env):
                 invalid_action = 1
 
         else:
-            raise ValueError(f"Acción no válida: {action}")
+            raise ValueError(f"Invalid action: {action}")
 
         unmet_demand = max(demand - demand_covered, 0)
 
@@ -131,11 +131,11 @@ class SmartGridEnv(gym.Env):
 
     def render(self):
         battery, demand, renewable, period = map(int, self.state)
-        period_names = {0: "mañana", 1: "tarde", 2: "noche"}
+        period_names = {0: "morning", 1: "afternoon", 2: "night"}
         print(
-            f"Paso={self.current_step} | "
-            f"Batería={battery} | Demanda={demand} | Renovable={renewable} | "
-            f"Periodo={period_names[period]}"
+            f"Step={self.current_step} | "
+            f"Battery={battery} | Demand={demand} | Renewable={renewable} | "
+            f"Period={period_names[period]}"
         )
 
     def _sample_demand(self, period: int) -> int:
