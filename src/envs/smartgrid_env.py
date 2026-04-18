@@ -67,11 +67,11 @@ class SmartGridEnv(gym.Env):
         invalid_action = 0
 
         if action == 0:
+            if deficit == 0 or battery == 0:
+                invalid_action = 1
             battery_used = min(battery, deficit)
             battery -= battery_used
             demand_covered += battery_used
-            if deficit == 0:
-                invalid_action = 1
 
         elif action == 1:
             grid_bought = deficit
@@ -83,7 +83,7 @@ class SmartGridEnv(gym.Env):
             available_capacity = self.max_battery - battery
             stored = min(surplus, available_capacity)
             battery += stored
-            if surplus == 0:
+            if surplus == 0 or available_capacity == 0:
                 invalid_action = 1
 
         elif action == 3:
@@ -134,7 +134,7 @@ class SmartGridEnv(gym.Env):
         period_names = {0: "morning", 1: "afternoon", 2: "night"}
         print(
             f"Step={self.current_step} | "
-            f"Battery={battery} | Demand={demand} | Renewable={renewable} | "
+            f"Battery level={battery} | Demand level={demand} | Renewable level={renewable} | "
             f"Period={period_names[period]}"
         )
 
