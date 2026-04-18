@@ -36,6 +36,7 @@ The reward encourages covering demand and penalizes leaving demand unmet or rely
 - Gymnasium
 - NumPy
 - Matplotlib
+- Pandas
 
 ## Repository structure
 
@@ -105,7 +106,7 @@ Saved files:
 - training reward plot:
   - `results/plots/training_rewards.png`
 - demo episode log with step-by-step agent decisions:
-  - `results/logs/demo_episode.txt`
+  - `results/logs/demo_episode.csv`
 
 The script creates the output folders automatically if they do not exist.
 
