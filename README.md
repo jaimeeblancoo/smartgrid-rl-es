@@ -68,7 +68,7 @@ smartgrid-rl-es/
 ## Installation
 
 ```bash
-git clone <REPOSITORY_URL>
+git clone -b v1-main https://github.com/jaimeeblancoo/smartgrid-rl-es.git
 cd smartgrid-rl-es
 python -m venv .venv
 source .venv/bin/activate
