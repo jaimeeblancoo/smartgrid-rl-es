@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import random
-
 import numpy as np
 
 
@@ -27,14 +25,14 @@ class QLearningAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
 
-        self.rng = random.Random(seed)
+        self.rng = np.random.default_rng(seed)
         self.q_table = np.zeros(self.state_shape + (n_actions,), dtype=np.float32)
 
     def choose_action(self, state) -> int:
         state = tuple(state)
 
         if self.rng.random() < self.epsilon:
-            return self.rng.randrange(self.n_actions)
+            return int(self.rng.integers(self.n_actions))
 
         return int(np.argmax(self.q_table[state]))
 
