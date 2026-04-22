@@ -296,6 +296,17 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+### On Ubuntu / Linux
+
+```bash
+source .venv/bin/activate
+
+python -m src.training.train --scenario baseline
+python -m src.training.train --scenario combined_v2
+python -m src.training.evaluate
+streamlit run src/dashboard/app.py
+```
+
 ---
 
 ## Dependencies
