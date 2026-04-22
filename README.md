@@ -520,6 +520,26 @@ These files summarize metrics by scenario, such as:
 - average final battery level,
 - and average sold energy.
 
+### Results report PDF
+
+Stored in:
+
+```text
+results/summaries/
+```
+
+Example:
+- `SmartGrid_ES_V2_results_report.pdf`
+
+This document provides a formal summary of the V2 execution and interpretation, including:
+- the reported scenarios,
+- aggregate evaluation metrics,
+- episode-level analysis,
+- charts,
+- and the main conclusions and limitations.
+
+It complements the raw CSV, model, and plot artifacts with a readable academic report.
+
 ### About `results/logs/`
 The `results/logs/` folder is kept in the structure for optional local logs or auxiliary outputs, but the main V2 workflow is centered on:
 - `results/models/`
