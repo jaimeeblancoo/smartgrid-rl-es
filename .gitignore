@@ -2,8 +2,14 @@
 __pycache__/
 *.pyc
 
-results/plots/*
+results/demos/*
 results/logs/*
+results/models/*
+results/plots/*
+results/summaries/*
 
-!results/plots/.gitkeep
+!results/demos/.gitkeep
 !results/logs/.gitkeep
+!results/models/.gitkeep
+!results/plots/.gitkeep
+!results/summaries/.gitkeep
