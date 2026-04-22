@@ -3,7 +3,6 @@ from __future__ import annotations
 from src.envs.smartgrid_env import SmartGridEnv
 from src.wrappers.battery_loss_wrapper import BatteryLossWrapper
 from src.wrappers.demand_noise_wrapper import DemandNoiseWrapper
-from src.wrappers.reward_shaping_wrapper import RewardShapingWrapper
 from src.wrappers.season_wrapper import SeasonWrapper
 
 
@@ -76,7 +75,6 @@ def build_env_from_scenario(
             discharge_loss_prob=config["discharge_loss_prob"],
             leakage_prob=config["leakage_prob"],
         )
-        env = RewardShapingWrapper(env)
         return env
 
     raise ValueError(f"Scenario is configured but not implemented in factory: {scenario_name}")
