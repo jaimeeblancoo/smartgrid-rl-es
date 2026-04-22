@@ -50,6 +50,10 @@ class SmartGridEnv(gym.Env):
 
         self.state = np.array([battery, demand, renewable, period], dtype=np.int64)
         info = self._build_info(
+            battery_level=battery,
+            demand=demand,
+            renewable=renewable,
+            period=period,
             battery_used=0,
             grid_bought=0,
             stored=0,
@@ -79,11 +83,13 @@ class SmartGridEnv(gym.Env):
             else:
                 battery_used = min(battery, deficit)
                 battery -= battery_used
+
         elif action == 1:
             if deficit == 0:
                 invalid_action = 1
             else:
                 grid_bought = deficit
+
         elif action == 2:
             free_capacity = self.max_battery - battery
             if surplus == 0 or free_capacity == 0:
@@ -91,6 +97,7 @@ class SmartGridEnv(gym.Env):
             else:
                 stored = min(surplus, free_capacity)
                 battery += stored
+
         elif action == 3:
             if surplus == 0:
                 invalid_action = 1
@@ -107,15 +114,11 @@ class SmartGridEnv(gym.Env):
         reward += 0.4 * sold
         reward -= 1.0 * invalid_action
 
-        self.current_step += 1
-        next_period = self.current_step % 4
-        next_demand = self._sample_demand(next_period)
-        next_renewable = self._sample_renewable(next_period)
-        self.state = np.array([battery, next_demand, next_renewable, next_period], dtype=np.int64)
-
-        terminated = False
-        truncated = self.current_step >= self.max_steps
-        info = self._build_info(
+        current_info = self._build_info(
+            battery_level=battery,
+            demand=demand,
+            renewable=renewable,
+            period=period,
             battery_used=battery_used,
             grid_bought=grid_bought,
             stored=stored,
@@ -124,7 +127,16 @@ class SmartGridEnv(gym.Env):
             invalid_action=invalid_action,
             demand_covered=demand_covered,
         )
-        return self.state.copy(), float(reward), terminated, truncated, info
+
+        self.current_step += 1
+        next_period = self.current_step % 4
+        next_demand = self._sample_demand(next_period)
+        next_renewable = self._sample_renewable(next_period)
+        self.state = np.array([battery, next_demand, next_renewable, next_period], dtype=np.int64)
+
+        terminated = False
+        truncated = self.current_step >= self.max_steps
+        return self.state.copy(), float(reward), terminated, truncated, current_info
 
     def render(self):
         battery, demand, renewable, period = map(int, self.state)
@@ -153,6 +165,10 @@ class SmartGridEnv(gym.Env):
     def _build_info(
         self,
         *,
+        battery_level: int,
+        demand: int,
+        renewable: int,
+        period: int,
         battery_used: int,
         grid_bought: int,
         stored: int,
@@ -161,14 +177,14 @@ class SmartGridEnv(gym.Env):
         invalid_action: int,
         demand_covered: int | None = None,
     ) -> dict[str, Any]:
-        battery, demand, renewable, period = map(int, self.state)
         if demand_covered is None:
             demand_covered = max(0, demand - unmet_demand)
+
         return {
-            "battery_level": battery,
-            "demand": demand,
-            "renewable": renewable,
-            "period": period,
+            "battery_level": int(battery_level),
+            "demand": int(demand),
+            "renewable": int(renewable),
+            "period": int(period),
             "battery_used": int(battery_used),
             "grid_bought": int(grid_bought),
             "stored": int(stored),
