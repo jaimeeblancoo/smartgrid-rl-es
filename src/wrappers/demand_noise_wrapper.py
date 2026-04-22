@@ -53,6 +53,6 @@ class DemandNoiseWrapper(gym.Wrapper):
 
         info["noise_event"] = noise_event
         info["demand_noise"] = int(noise)
-        info["demand_level"] = int(demand)
+        info["post_noise_demand"] = int(demand)
 
         return updated_obs, reward, terminated, truncated, info

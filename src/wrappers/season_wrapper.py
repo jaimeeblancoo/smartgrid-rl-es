@@ -35,8 +35,8 @@ class SeasonWrapper(gym.Wrapper):
 
         info = dict(info)
         info["season"] = self.season
-        info["demand"] = int(obs[1])
-        info["renewable"] = int(obs[2])
+        info["season_adjusted_demand"] = int(obs[1])
+        info["season_adjusted_renewable"] = int(obs[2])
         return obs, reward, terminated, truncated, info
 
     def _apply_season(self, obs):

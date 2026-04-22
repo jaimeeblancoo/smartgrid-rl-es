@@ -67,7 +67,7 @@ def evaluate_agent(scenario_name: str) -> dict:
             last_battery = info["battery_level"]
 
         rewards.append(reward_total)
-        coverages.append(covered_total / demand_total if demand_total else 0.0)
+        coverages.append(min(covered_total / demand_total, 1.0) if demand_total else 0.0)
         grid_buys.append(grid_total)
         sold_energy.append(sold_total)
         battery_levels.append(last_battery)
