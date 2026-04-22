@@ -63,7 +63,7 @@ def train_agent(scenario_name: str):
 
         agent.decay_epsilon()
         rewards_history.append(total_reward)
-        coverage_history.append(total_covered / total_demand if total_demand else 0.0)
+        coverage_history.append(min(total_covered / total_demand, 1.0) if total_demand else 0.0)
         grid_history.append(total_grid)
 
         if episode % cfg["log_every"] == 0:
