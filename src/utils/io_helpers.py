@@ -14,4 +14,4 @@ def ensure_dir(path: str | Path) -> Path:
 def save_dataframe(df: pd.DataFrame, path: str | Path) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(path, index=False)
+    df.to_csv(path, index=False, encoding="utf-8")

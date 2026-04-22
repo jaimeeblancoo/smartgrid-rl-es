@@ -15,9 +15,13 @@ class SeasonWrapper(gym.Wrapper):
         self._rng = np.random.default_rng(seed)
 
     def reset(self, *, seed=None, options=None):
+        if seed is not None:
+            self._rng = np.random.default_rng(seed)
+
         obs, info = self.env.reset(seed=seed, options=options)
         obs = self._apply_season(obs)
         self.unwrapped.state = obs.copy()
+
         info = dict(info)
         info["season"] = self.season
         info["demand"] = int(obs[1])
@@ -28,6 +32,7 @@ class SeasonWrapper(gym.Wrapper):
         obs, reward, terminated, truncated, info = self.env.step(action)
         obs = self._apply_season(obs)
         self.unwrapped.state = obs.copy()
+
         info = dict(info)
         info["season"] = self.season
         info["demand"] = int(obs[1])
@@ -36,6 +41,7 @@ class SeasonWrapper(gym.Wrapper):
 
     def _apply_season(self, obs):
         battery, demand, renewable, period = map(int, obs)
+
         if self.season == "winter":
             if self._rng.random() < 0.35:
                 demand = min(2, demand + 1)
@@ -46,4 +52,5 @@ class SeasonWrapper(gym.Wrapper):
                 renewable = min(2, renewable + 1)
             if self._rng.random() < 0.20:
                 demand = max(0, demand - 1)
+
         return np.array([battery, demand, renewable, period], dtype=np.int64)

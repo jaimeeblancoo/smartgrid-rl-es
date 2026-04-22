@@ -35,6 +35,9 @@ def build_env_from_scenario(scenario_name: str, max_steps: int, seed: int | None
     config = SCENARIO_CONFIGS[scenario_name]
     env = SmartGridEnv(max_steps=max_steps, seed=seed)
 
+    if scenario_name == "baseline":
+        return env
+
     if scenario_name in {"winter", "summer"}:
         return SeasonWrapper(env, season=config["season"], seed=seed)
 
@@ -57,7 +60,12 @@ def build_env_from_scenario(scenario_name: str, max_steps: int, seed: int | None
 
     if scenario_name == "combined_v2":
         env = SeasonWrapper(env, season=config["season"], seed=seed)
-        env = DemandNoiseWrapper(env, spike_prob=config["spike_prob"], drop_prob=config["drop_prob"], seed=seed)
+        env = DemandNoiseWrapper(
+            env,
+            spike_prob=config["spike_prob"],
+            drop_prob=config["drop_prob"],
+            seed=seed,
+        )
         env = BatteryLossWrapper(
             env,
             charge_loss_prob=config["charge_loss_prob"],
@@ -68,4 +76,4 @@ def build_env_from_scenario(scenario_name: str, max_steps: int, seed: int | None
         env = RewardShapingWrapper(env)
         return env
 
-    return env
+    raise ValueError(f"Scenario is configured but not implemented in factory: {scenario_name}")
