@@ -86,6 +86,49 @@ Each component is discrete:
 
 These are **discrete levels**, not continuous real-world measurements.
 
+### Interpreting discrete state values
+
+The values `0`, `1`, and `2` should be interpreted as **ordered discrete categories**, not as exact physical units.
+
+A simple interpretation is:
+
+- `0` = low or none
+- `1` = medium
+- `2` = high
+
+So, for example:
+- `battery = 0` means the battery is empty or almost empty,
+- `battery = 2` means the battery is at a high stored-energy level,
+- `demand = 2` means the environment is currently in a high-demand situation,
+- `renewable = 2` means renewable generation is currently high.
+
+This representation keeps the environment small enough for tabular Q-learning while still allowing meaningful differences between operating conditions.
+
+### Period meaning
+
+The variable `period` also uses a discrete representation:
+
+- `0` = first daily segment
+- `1` = second daily segment
+- `2` = third daily segment
+- `3` = fourth daily segment
+
+These values do **not** correspond to exact real-world hours.  
+Instead, they represent four simplified phases of the day used to change the probability of different demand and renewable generation levels.
+
+This means the agent does not just react to the current battery, demand, and renewable values. It can also learn that different periods tend to have different operating patterns.
+
+### Demand and renewable sampling
+
+The values of `demand` and `renewable` are sampled stochastically, and their distributions depend on the current `period`.
+
+This is important for interpreting results:
+- some periods are more likely to produce higher demand,
+- some periods are more likely to produce higher renewable generation,
+- and the agent must adapt to those changing conditions.
+
+Because of this, the same action can be more or less useful depending on the current period.
+
 ---
 
 ## Action space
@@ -106,6 +149,20 @@ The action space has 4 discrete actions:
 - **store surplus energy**: save extra renewable energy in the battery when possible.
 - **sell surplus energy**: sell renewable surplus instead of storing it.
 
+### When actions make sense
+
+The interpretation of the actions is easier if they are read together with the current energy balance:
+
+- if `demand > renewable`, the system is in a **deficit** situation,
+- if `renewable > demand`, the system is in a **surplus** situation,
+- if `demand == renewable`, the current renewable generation already matches demand.
+
+So:
+- **use battery** and **buy from grid** are mainly relevant in deficit situations,
+- **store surplus energy** and **sell surplus energy** are mainly relevant in surplus situations.
+
+If the agent tries to apply an action that does not fit the current situation, the environment can mark it as an invalid action and penalise it.
+
 ---
 
 ## Reward intuition
@@ -120,6 +177,19 @@ In general, the reward:
 - and **penalizes invalid actions**.
 
 Some V2 scenarios also apply additional reward shaping through wrappers.
+
+### How to interpret reward values
+
+The reward should not be read as a monetary value.  
+Instead, it is a compact signal that combines several objectives:
+
+- serving demand is good,
+- leaving demand uncovered is bad,
+- using the external grid too much is costly,
+- selling surplus can be positive,
+- and invalid actions reduce performance.
+
+This means that a higher reward generally indicates a better policy, but reward should still be interpreted together with the evaluation metrics and scenario context.
 
 ---
 
@@ -143,6 +213,25 @@ V2 supports the following scenarios through `src/envs/factory.py`:
 - **battery_loss**: simulates simple battery inefficiency and losses.
 - **combined_v2**: combines seasonal effects, demand noise, battery loss, and reward shaping.
 
+### How to compare scenarios
+
+A scenario should not be judged only by reward in isolation.
+
+A stronger result usually combines:
+- **higher `avg_reward`**,
+- **higher `avg_coverage`**,
+- **lower `avg_grid_bought`**,
+- and a reasonable battery behavior depending on the scenario.
+
+More difficult scenarios are expected to produce weaker raw numbers than the baseline. That does not necessarily mean the agent is worse trained; it may simply mean the environment is more demanding.
+
+For example:
+- `baseline` is the clean reference case,
+- `winter` and `summer` change the operating profile,
+- `demand_noise` makes demand less predictable,
+- `battery_loss` reduces battery reliability,
+- `combined_v2` is usually the hardest scenario because several sources of difficulty are active at the same time.
+
 ---
 
 ## Wrappers used in V2
@@ -162,6 +251,19 @@ Simulates battery inefficiency while keeping the state discrete.
 Adjusts the reward signal without modifying the base environment logic.
 
 This wrapper-based design is one of the main differences between V1 and V2.
+
+### How wrappers affect interpretation
+
+The wrappers do not all change the environment in the same way:
+
+- **SeasonWrapper** changes the underlying demand and renewable profile.
+- **DemandNoiseWrapper** makes demand less predictable during the episode.
+- **BatteryLossWrapper** makes stored energy less reliable.
+- **RewardShapingWrapper** changes the incentive signal, not the base physical transition itself.
+
+This matters when interpreting results:
+- weaker performance in a wrapped scenario may reflect a genuinely harder environment,
+- and differences between scenarios should be read as differences in operating conditions, not just as changes in agent quality.
 
 ---
 
@@ -286,6 +388,22 @@ The dashboard reads data from:
 - `results/summaries/`
 - `results/demos/`
 
+### How to interpret the dashboard
+
+The dashboard is useful because it combines:
+- aggregated scenario-level results from evaluation,
+- and step-by-step episode data from the demo CSV files.
+
+This allows two complementary views:
+- a **summary view**, to compare scenarios globally,
+- and a **trajectory view**, to inspect how the agent behaves step by step inside one episode.
+
+If the evaluation summary shows that a scenario is weaker than another, the demo CSV can help understand why:
+- more grid use,
+- less battery availability,
+- more unmet demand,
+- or less opportunity to exploit surplus energy.
+
 ---
 
 ## Repository structure
@@ -408,6 +526,36 @@ The `results/logs/` folder is kept in the structure for optional local logs or a
 - `results/plots/`
 - `results/demos/`
 - `results/summaries/`
+
+### How to read evaluation metrics
+
+The most important evaluation metrics are:
+
+- **avg_reward**: average total reward per episode.
+- **avg_coverage**: average proportion of demand covered during evaluation episodes.
+- **avg_grid_bought**: average amount of energy bought from the grid per episode.
+- **avg_battery_end**: average battery level at the end of evaluation episodes.
+- **avg_sold**: average amount of surplus energy sold per episode.
+
+A useful interpretation is:
+- higher `avg_reward` is usually better,
+- higher `avg_coverage` is better,
+- lower `avg_grid_bought` is usually better,
+- higher `avg_sold` can be positive if surplus is being exploited efficiently,
+- and `avg_battery_end` should be read carefully depending on the scenario, because ending with a full battery is not always the main objective if demand was not well covered.
+
+### How to interpret demo episode files
+
+The demo episode CSV files are useful for understanding **how** the agent behaves, not just how well it scores.
+
+They can help answer questions such as:
+- when does the agent use the battery?
+- when does it rely on the external grid?
+- does it exploit renewable surplus well?
+- does it keep making invalid actions?
+- does it behave differently in more difficult scenarios?
+
+This makes the demo CSVs especially helpful when the summary metrics alone do not explain the behaviour clearly.
 
 ---
 
