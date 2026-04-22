@@ -358,6 +358,24 @@ These files summarize metrics by scenario, such as:
 
 ---
 
+## Main results and conclusions
+
+The V2 version of SmartGrid-ES provides a more complete experimentation workflow than V1.
+
+By introducing scenarios, wrappers, comparative evaluation, and a dashboard, the project can now be used not only to train an agent, but also to compare behavior across different operating conditions.
+
+The generated outputs make it possible to inspect:
+- how reward changes across scenarios,
+- how much demand is covered,
+- how often the grid is used,
+- and how battery-related effects influence performance.
+
+In particular, the `combined_v2` scenario is useful because it brings together several sources of difficulty in a single setup, making it a better approximation of a more realistic decision environment than the baseline case.
+
+Even though the environment is still intentionally simple and discrete, the project now has a solid V2 structure that is easy to explain, test, and extend. This makes it a good foundation for a future V3 with richer dynamics and possibly more realistic data or environment design.
+
+---
+
 ## Notes about data
 
 V2 does **not** use:
