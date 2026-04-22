@@ -220,6 +220,14 @@ Evaluation:
 - exports a summary CSV,
 - and generates a comparison plot.
 
+Evaluation expects trained models to exist in:
+
+```text
+results/models/
+```
+
+So, if no models are available yet, run one or more training commands first.
+
 ### Suggested workflow
 
 A simple and recommended execution order for V2 is:
@@ -240,6 +248,17 @@ This makes it easier to generate the required files in the correct order before 
 
 ```bash
 source .venv/bin/activate
+
+python -m src.training.train --scenario baseline
+python -m src.training.train --scenario combined_v2
+python -m src.training.evaluate
+streamlit run src/dashboard/app.py
+```
+
+### On Windows PowerShell
+
+```powershell
+.\.venv\Scripts\Activate.ps1
 
 python -m src.training.train --scenario baseline
 python -m src.training.train --scenario combined_v2
@@ -382,6 +401,13 @@ These files summarize metrics by scenario, such as:
 - average grid energy bought,
 - average final battery level,
 - and average sold energy.
+
+### About `results/logs/`
+The `results/logs/` folder is kept in the structure for optional local logs or auxiliary outputs, but the main V2 workflow is centered on:
+- `results/models/`
+- `results/plots/`
+- `results/demos/`
+- `results/summaries/`
 
 ---
 
