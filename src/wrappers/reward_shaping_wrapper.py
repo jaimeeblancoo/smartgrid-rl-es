@@ -1,0 +1,66 @@
+from __future__ import annotations
+
+import gymnasium as gym
+
+
+class RewardShapingWrapper(gym.Wrapper):
+    """
+    Adjusts the reward signal without touching the base environment logic.
+    """
+
+    def __init__(
+        self,
+        env: gym.Env,
+        demand_covered_bonus: float = 0.50,
+        battery_bonus: float = 0.25,
+        renewable_bonus: float = 0.25,
+        unmet_demand_penalty: float = 1.00,
+        invalid_action_penalty: float = 0.25,
+    ) -> None:
+        super().__init__(env)
+        self.demand_covered_bonus = demand_covered_bonus
+        self.battery_bonus = battery_bonus
+        self.renewable_bonus = renewable_bonus
+        self.unmet_demand_penalty = unmet_demand_penalty
+        self.invalid_action_penalty = invalid_action_penalty
+
+    def reset(self, **kwargs):
+        return self.env.reset(**kwargs)
+
+    def step(self, action: int):
+        obs, reward, terminated, truncated, info = self.env.step(action)
+
+        info = dict(info)
+        shaped_reward = float(reward)
+
+        grid_bought = (
+            info.get("grid_bought", 0) > 0
+            or info.get("bought", 0) > 0
+            or info.get("energy_bought", 0) > 0
+        )
+
+        battery_level = int(obs[0]) if len(obs) > 0 else 0
+        unmet_demand = float(info.get("unmet_demand", 0))
+        renewable_used = float(info.get("renewable_used", 0))
+        invalid_action = int(info.get("invalid_action", 0))
+
+        if unmet_demand == 0:
+            shaped_reward += self.demand_covered_bonus
+
+        if battery_level > 0 and unmet_demand == 0 and not grid_bought:
+            shaped_reward += self.battery_bonus
+
+        if renewable_used > 0:
+            shaped_reward += self.renewable_bonus
+
+        if unmet_demand > 0:
+            shaped_reward -= self.unmet_demand_penalty * unmet_demand
+
+        if invalid_action:
+            shaped_reward -= self.invalid_action_penalty
+
+        info["base_reward"] = float(reward)
+        info["shaped_reward"] = float(shaped_reward)
+        info["grid_bought_flag"] = bool(grid_bought)
+
+        return obs, shaped_reward, terminated, truncated, info
