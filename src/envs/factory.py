@@ -11,7 +11,10 @@ SCENARIO_CONFIGS = {
     "baseline": {},
     "winter": {"season": "winter"},
     "summer": {"season": "summer"},
-    "demand_noise": {"spike_prob": 0.20, "drop_prob": 0.05},
+    "demand_noise": {
+        "spike_probability": 0.20,
+        "spike_size": 1,
+    },
     "battery_loss": {
         "charge_loss_prob": 0.30,
         "discharge_loss_prob": 0.20,
@@ -19,8 +22,8 @@ SCENARIO_CONFIGS = {
     },
     "combined_v2": {
         "season": "winter",
-        "spike_prob": 0.20,
-        "drop_prob": 0.05,
+        "spike_probability": 0.20,
+        "spike_size": 1,
         "charge_loss_prob": 0.30,
         "discharge_loss_prob": 0.20,
         "leakage_prob": 0.12,
@@ -28,7 +31,11 @@ SCENARIO_CONFIGS = {
 }
 
 
-def build_env_from_scenario(scenario_name: str, max_steps: int, seed: int | None = None):
+def build_env_from_scenario(
+    scenario_name: str,
+    max_steps: int,
+    seed: int | None = None,
+):
     if scenario_name not in SCENARIO_CONFIGS:
         raise ValueError(f"Unknown scenario: {scenario_name}")
 
@@ -44,9 +51,8 @@ def build_env_from_scenario(scenario_name: str, max_steps: int, seed: int | None
     if scenario_name == "demand_noise":
         return DemandNoiseWrapper(
             env,
-            spike_prob=config["spike_prob"],
-            drop_prob=config["drop_prob"],
-            seed=seed,
+            spike_probability=config["spike_probability"],
+            spike_size=config["spike_size"],
         )
 
     if scenario_name == "battery_loss":
@@ -55,23 +61,20 @@ def build_env_from_scenario(scenario_name: str, max_steps: int, seed: int | None
             charge_loss_prob=config["charge_loss_prob"],
             discharge_loss_prob=config["discharge_loss_prob"],
             leakage_prob=config["leakage_prob"],
-            seed=seed,
         )
 
     if scenario_name == "combined_v2":
         env = SeasonWrapper(env, season=config["season"], seed=seed)
         env = DemandNoiseWrapper(
             env,
-            spike_prob=config["spike_prob"],
-            drop_prob=config["drop_prob"],
-            seed=seed,
+            spike_probability=config["spike_probability"],
+            spike_size=config["spike_size"],
         )
         env = BatteryLossWrapper(
             env,
             charge_loss_prob=config["charge_loss_prob"],
             discharge_loss_prob=config["discharge_loss_prob"],
             leakage_prob=config["leakage_prob"],
-            seed=seed,
         )
         env = RewardShapingWrapper(env)
         return env
