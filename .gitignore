@@ -1,15 +1,3 @@
 .venv/
 __pycache__/
 *.pyc
-
-results/demos/*
-results/logs/*
-results/models/*
-results/plots/*
-results/summaries/*
-
-!results/demos/.gitkeep
-!results/logs/.gitkeep
-!results/models/.gitkeep
-!results/plots/.gitkeep
-!results/summaries/.gitkeep
