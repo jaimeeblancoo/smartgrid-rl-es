@@ -165,6 +165,28 @@ This wrapper-based design is one of the main differences between V1 and V2.
 
 ---
 
+## Installation
+
+Clone the repository and install the required packages:
+
+```bash
+git clone https://github.com/jaimeeblancoo/smartgrid-rl-es.git
+cd smartgrid-rl-es
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### On Windows PowerShell
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+---
+
 ## Training and evaluation
 
 ### Training
@@ -213,6 +235,17 @@ A simple and recommended execution order for V2 is:
    - `streamlit run src/dashboard/app.py`
 
 This makes it easier to generate the required files in the correct order before inspecting them in the dashboard.
+
+### On Ubuntu / Linux
+
+```bash
+source .venv/bin/activate
+
+python -m src.training.train --scenario baseline
+python -m src.training.train --scenario combined_v2
+python -m src.training.evaluate
+streamlit run src/dashboard/app.py
+```
 
 ---
 
@@ -272,39 +305,6 @@ smartgrid-rl-es/
     ├── models/
     ├── plots/
     └── summaries/
-```
-
----
-
-## Installation
-
-Clone the repository and install the required packages:
-
-```bash
-git clone -b v2-dev https://github.com/jaimeeblancoo/smartgrid-rl-es.git
-cd smartgrid-rl-es
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### On Windows PowerShell
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-### On Ubuntu / Linux
-
-```bash
-source .venv/bin/activate
-
-python -m src.training.train --scenario baseline
-python -m src.training.train --scenario combined_v2
-python -m src.training.evaluate
-streamlit run src/dashboard/app.py
 ```
 
 ---
