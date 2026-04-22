@@ -13,14 +13,12 @@ class RewardShapingWrapper(gym.Wrapper):
         env: gym.Env,
         demand_covered_bonus: float = 0.50,
         battery_bonus: float = 0.25,
-        renewable_bonus: float = 0.25,
         unmet_demand_penalty: float = 1.00,
         invalid_action_penalty: float = 0.25,
     ) -> None:
         super().__init__(env)
         self.demand_covered_bonus = demand_covered_bonus
         self.battery_bonus = battery_bonus
-        self.renewable_bonus = renewable_bonus
         self.unmet_demand_penalty = unmet_demand_penalty
         self.invalid_action_penalty = invalid_action_penalty
 
@@ -33,15 +31,9 @@ class RewardShapingWrapper(gym.Wrapper):
         info = dict(info)
         shaped_reward = float(reward)
 
-        grid_bought = (
-            info.get("grid_bought", 0) > 0
-            or info.get("bought", 0) > 0
-            or info.get("energy_bought", 0) > 0
-        )
-
+        grid_bought = info.get("grid_bought", 0) > 0
         battery_level = int(obs[0]) if len(obs) > 0 else 0
         unmet_demand = float(info.get("unmet_demand", 0))
-        renewable_used = float(info.get("renewable_used", 0))
         invalid_action = int(info.get("invalid_action", 0))
 
         if unmet_demand == 0:
@@ -49,9 +41,6 @@ class RewardShapingWrapper(gym.Wrapper):
 
         if battery_level > 0 and unmet_demand == 0 and not grid_bought:
             shaped_reward += self.battery_bonus
-
-        if renewable_used > 0:
-            shaped_reward += self.renewable_bonus
 
         if unmet_demand > 0:
             shaped_reward -= self.unmet_demand_penalty * unmet_demand

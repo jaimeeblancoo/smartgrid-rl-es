@@ -17,13 +17,11 @@ class BatteryLossWrapper(gym.Wrapper):
         charge_loss_prob: float = 0.30,
         discharge_loss_prob: float = 0.20,
         leakage_prob: float = 0.12,
-        loss_penalty: float = 0.75,
     ) -> None:
         super().__init__(env)
         self.charge_loss_prob = charge_loss_prob
         self.discharge_loss_prob = discharge_loss_prob
         self.leakage_prob = leakage_prob
-        self.loss_penalty = loss_penalty
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
@@ -60,10 +58,8 @@ class BatteryLossWrapper(gym.Wrapper):
         updated_obs = np.array([battery, demand, renewable, period], dtype=np.int64)
         self.unwrapped.state = updated_obs.copy()
 
-        shaped_reward = float(reward) - self.loss_penalty * total_loss
-
         info["battery_losses"] = int(total_loss)
         info["battery_level"] = int(battery)
         info["loss_reason"] = loss_reason
 
-        return updated_obs, shaped_reward, terminated, truncated, info
+        return updated_obs, reward, terminated, truncated, info

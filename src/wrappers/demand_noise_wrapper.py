@@ -7,7 +7,9 @@ import numpy as np
 class DemandNoiseWrapper(gym.Wrapper):
     """
     Adds occasional demand spikes during the episode.
-    It does not modify the initial state returned by reset().
+
+    This wrapper does not modify the initial observation returned by reset().
+    Noise is applied only after calling step().
     """
 
     def __init__(
@@ -38,11 +40,11 @@ class DemandNoiseWrapper(gym.Wrapper):
         noise_event = "none"
 
         if self.np_random.random() < self.spike_probability:
-            noise = self.spike_size
             demand_max = int(self.observation_space.nvec[1] - 1)
-            new_demand = min(demand + noise, demand_max)
+            new_demand = min(demand + self.spike_size, demand_max)
 
             if new_demand != demand:
+                noise = new_demand - demand
                 demand = new_demand
                 noise_event = "demand_spike"
 
