@@ -198,6 +198,22 @@ Evaluation:
 - exports a summary CSV,
 - and generates a comparison plot.
 
+### Suggested workflow
+
+A simple and recommended execution order for V2 is:
+
+1. Train one or more scenarios:
+   - `python -m src.training.train --scenario baseline`
+   - `python -m src.training.train --scenario combined_v2`
+
+2. Run the evaluation script:
+   - `python -m src.training.evaluate`
+
+3. Open the dashboard:
+   - `streamlit run src/dashboard/app.py`
+
+This makes it easier to generate the required files in the correct order before inspecting them in the dashboard.
+
 ---
 
 ## Dashboard
