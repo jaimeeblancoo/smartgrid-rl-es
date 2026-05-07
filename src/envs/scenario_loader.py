@@ -17,6 +17,17 @@ REQUIRED_REWARD_KEYS = (
 )
 
 
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _resolve_from_repo_root(path_value: str | Path) -> Path:
+    path = Path(path_value)
+    if path.is_absolute():
+        return path
+    return _repo_root() / path
+
+
 def load_scenario(json_path: str | Path) -> dict[str, Any]:
     json_path = Path(json_path)
     if not json_path.exists():
@@ -26,10 +37,22 @@ def load_scenario(json_path: str | Path) -> dict[str, Any]:
     missing = [k for k in REQUIRED_FIELDS if k not in config]
     if missing:
         raise ValueError(f"Missing required fields in scenario {json_path.name}: {missing}")
-    if config["mode"] not in {"csv", "markov", "csv_markov_noise"}:
-        raise ValueError(f"Unsupported scenario mode: {config['mode']}")
+    mode = config["mode"]
+    if mode in {"markov", "csv_markov_noise"}:
+        raise NotImplementedError(
+            f"Scenario mode '{mode}' is declared but not implemented in SmartGridEnvV3."
+        )
+    if mode != "csv":
+        raise ValueError(f"Unsupported scenario mode: {mode}")
     weights = config["reward_weights"]
     missing_w = [k for k in REQUIRED_REWARD_KEYS if k not in weights]
     if missing_w:
         raise ValueError(f"Missing required reward weights in {json_path.name}: {missing_w}")
+    for path_key in ("train_csv_path", "eval_csv_path"):
+        csv_path = _resolve_from_repo_root(config[path_key])
+        if not csv_path.exists():
+            raise FileNotFoundError(
+                f"Scenario {json_path.name} points to a missing CSV file: {config[path_key]}"
+            )
+        config[path_key] = str(csv_path)
     return config
