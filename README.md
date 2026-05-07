@@ -236,6 +236,18 @@ The dashboard reads data from:
 
 ---
 
+## V3 development
+
+`v3-dev` is the development branch for SmartGrid-ES V3.
+
+V3 adds synthetic CSV time series, JSON scenarios, fuzzy energy risk, richer metrics, and a V3-specific dashboard. The fuzzy risk value is not included in the initial `observation_space`, so the agent still learns from the discrete environment state without risk as an input feature.
+
+Fuzzy risk is used as a metric, a reward penalty, and a dashboard visualization. V3 keeps tabular Q-learning for interpretability and does not use external APIs or LLM-based agents.
+
+V3 uses a separate `src/training/compare_v2_v3.py` script for V2/V3 comparison instead of adding a selector to the dashboard.
+
+---
+
 ## Repository structure
 
 ```text

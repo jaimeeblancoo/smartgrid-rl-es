@@ -8,33 +8,10 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
+from src.envs.fuzzy_risk import compute_energy_risk
+from src.envs.reward_v3 import compute_reward_v3
 from src.envs.scenario_loader import load_scenario
 from src.envs.timeseries_loader import hour_to_period, load_timeseries
-
-
-try:
-    from src.envs.fuzzy_risk import compute_risk as _external_compute_risk
-except ImportError:
-    _external_compute_risk = None
-
-
-def _fallback_compute_risk(battery: int, demand: int, renewable: int, price: int) -> float:
-    risk = 0.0
-    if battery <= 1 and demand >= 2:
-        risk += 0.5
-    if renewable <= 1 and price >= 2:
-        risk += 0.3
-    if demand >= 3 and price >= 2:
-        risk += 0.2
-    if battery >= 3 and renewable >= 2:
-        risk -= 0.2
-    return float(max(0.0, min(1.0, risk)))
-
-
-def _compute_risk(battery: int, demand: int, renewable: int, price: int) -> float:
-    if _external_compute_risk is not None:
-        return float(_external_compute_risk(battery, demand, renewable, price))
-    return _fallback_compute_risk(battery, demand, renewable, price)
 
 
 class SmartGridEnvV3(gym.Env):
@@ -75,15 +52,17 @@ class SmartGridEnvV3(gym.Env):
         self.step_idx = 0
         obs = self._build_observation()
         row = self._current_row()
+        demand = int(row["demand_level"])
+        renewable = int(row["renewable_level"])
+        price = int(row["price_level"])
+        risk = compute_energy_risk(self.battery, demand, renewable, price)
         info: dict[str, Any] = {
             "demand_covered": 0, "unmet_demand": 0, "grid_bought": 0,
             "sold": 0, "wasted_renewable": 0, "invalid_action": 0,
-            "risk_score": _compute_risk(
-                self.battery,
-                int(row["demand_level"]),
-                int(row["renewable_level"]),
-                int(row["price_level"]),
-            ),
+            "demand": demand, "renewable": renewable, "price_level": price,
+            "risk_score": risk["risk_score"],
+            "risk_level": risk["risk_level"],
+            "risk_level_name": risk["risk_level_name"],
             "battery": self.battery,
         }
         return obs, info
@@ -91,20 +70,43 @@ class SmartGridEnvV3(gym.Env):
     def step(self, action: int):
         if self.step_idx >= len(self.timeseries) or self.step_idx >= self.max_steps:
             obs = self._build_observation()
-            return obs, 0.0, False, True, {"battery": self.battery, "risk_score": 0.0}
+            row = self._current_row()
+            demand = int(row["demand_level"])
+            renewable = int(row["renewable_level"])
+            price = int(row["price_level"])
+            risk = compute_energy_risk(self.battery, demand, renewable, price)
+            info = {
+                "battery": self.battery,
+                "demand": demand,
+                "renewable": renewable,
+                "price_level": price,
+                "risk_score": risk["risk_score"],
+                "risk_level": risk["risk_level"],
+                "risk_level_name": risk["risk_level_name"],
+            }
+            return obs, 0.0, False, True, info
         row = self.timeseries.iloc[self.step_idx]
         demand = int(row["demand_level"])
         renewable = int(row["renewable_level"])
         price = int(row["price_level"])
         outcomes = self._apply_action(int(action), demand, renewable)
-        risk_score = _compute_risk(self.battery, demand, renewable, price)
-        reward = self._compute_reward(outcomes, price, risk_score)
+        risk = compute_energy_risk(self.battery, demand, renewable, price)
+        info: dict[str, Any] = {
+            **outcomes,
+            "demand": demand,
+            "renewable": renewable,
+            "price_level": price,
+            "risk_score": risk["risk_score"],
+            "risk_level": risk["risk_level"],
+            "risk_level_name": risk["risk_level_name"],
+            "battery": self.battery,
+        }
+        reward = compute_reward_v3(info, self.reward_weights)
         self.step_idx += 1
         truncated = (self.step_idx >= len(self.timeseries)
                      or self.step_idx >= self.max_steps)
         terminated = False
         obs = self._build_observation()
-        info: dict[str, Any] = {**outcomes, "risk_score": risk_score, "battery": self.battery}
         return obs, float(reward), terminated, truncated, info
 
     def _current_row(self):
@@ -173,16 +175,3 @@ class SmartGridEnvV3(gym.Env):
             "invalid_action": int(invalid_action),
         }
 
-    def _compute_reward(self, outcomes: dict[str, int], price: int,
-                        risk_score: float) -> float:
-        w = self.reward_weights
-        reward = (
-            w["demand_covered"] * outcomes["demand_covered"]
-            + w["unmet_demand"] * outcomes["unmet_demand"]
-            + w["grid_bought"] * outcomes["grid_bought"] * (1 + price)
-            + w["sold"] * outcomes["sold"]
-            + w["invalid_action"] * outcomes["invalid_action"]
-            + w["wasted_renewable"] * outcomes["wasted_renewable"]
-            + w["risk"] * risk_score
-        )
-        return float(reward)
