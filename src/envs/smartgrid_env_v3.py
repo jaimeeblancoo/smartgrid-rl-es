@@ -19,8 +19,13 @@ class SmartGridEnvV3(gym.Env):
 
     metadata = {"render_modes": []}
 
-    def __init__(self, scenario_path: str | Path, mode: str = "train",
-                 seed: int | None = None) -> None:
+    def __init__(
+        self,
+        scenario_path: str | Path,
+        mode: str = "train",
+        seed: int | None = None,
+        reward_weights_override: dict | None = None,
+    ) -> None:
         super().__init__()
         self.config = load_scenario(scenario_path)
         if mode == "train":
@@ -33,7 +38,11 @@ class SmartGridEnvV3(gym.Env):
         self.battery_capacity = int(self.config["battery_capacity"])
         self.initial_battery = int(self.config["initial_battery"])
         self.max_steps = int(self.config["max_steps"])
-        self.reward_weights = dict(self.config["reward_weights"])
+        self.reward_weights = dict(
+            reward_weights_override
+            if reward_weights_override is not None
+            else self.config["reward_weights"]
+        )
         self.observation_space = spaces.MultiDiscrete([
             self.battery_capacity + 1, 4, 4, 3, 4, 3,
         ])

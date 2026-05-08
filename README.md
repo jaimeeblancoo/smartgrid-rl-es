@@ -288,6 +288,28 @@ streamlit run src/dashboard/app.py
 
 ---
 
+## V3.1 optional PSO experiment
+
+V3.1 is an optional and experimental reward-weight tuning experiment. It follows the Particle Swarm Optimization style used in class with `pyswarm`, and uses PSO to tune reward weights for `SmartGridEnvV3`.
+
+PSO does not replace Q-learning: the learning agent remains the existing tabular `QLearningAgent`, and each PSO particle proposes a candidate V3 reward-weight vector. The V3.0 train, evaluate, and dashboard commands remain unchanged. No external APIs or LLM agents are used.
+
+Run the default baseline experiment:
+
+```bash
+python -m src.optimization.pso_reward_tuning --scenario baseline_v3
+```
+
+Run a faster smoke experiment:
+
+```bash
+python -m src.optimization.pso_reward_tuning --scenario baseline_v3 --episodes 50 --maxiter 2 --swarmsizes 3 --omegas 0.5 --phips 1.0 --phigs 1.0
+```
+
+V3.1 outputs are saved under `results/v3_1/`.
+
+---
+
 ## V3 development
 
 `v3-dev` is the development branch for SmartGrid-ES V3.
