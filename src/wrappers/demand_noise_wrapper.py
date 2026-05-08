@@ -23,6 +23,7 @@ class DemandNoiseWrapper(gym.Wrapper):
         self.spike_size = spike_size
 
     def reset(self, **kwargs):
+        """Reset the environment and initialize demand-noise metadata."""
         obs, info = self.env.reset(**kwargs)
         info = dict(info)
         info["noise_event"] = "none"
@@ -30,6 +31,7 @@ class DemandNoiseWrapper(gym.Wrapper):
         return obs, info
 
     def step(self, action: int):
+        """Run one step and optionally inject a discrete demand spike."""
         obs, reward, terminated, truncated, info = self.env.step(action)
 
         obs = np.array(obs, dtype=np.int64)

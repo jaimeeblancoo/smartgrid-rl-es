@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def moving_average(values: Sequence[float], window: int = 50):
+def moving_average(values: Sequence[float], window: int = 50) -> list[float]:
+    """Compute a simple trailing moving average."""
     if not values:
         return []
     output = []
@@ -18,6 +19,7 @@ def moving_average(values: Sequence[float], window: int = 50):
 
 
 def plot_rewards(rewards: Sequence[float], output_path: str) -> None:
+    """Save a training reward curve with a moving-average line."""
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(10, 5))
     plt.plot(rewards, label="reward")
@@ -32,6 +34,7 @@ def plot_rewards(rewards: Sequence[float], output_path: str) -> None:
 
 
 def plot_comparison(summary_df: pd.DataFrame, output_path: str) -> None:
+    """Save a bar plot comparing scenario average rewards."""
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(10, 5))
     plt.bar(summary_df["scenario"], summary_df["avg_reward"])

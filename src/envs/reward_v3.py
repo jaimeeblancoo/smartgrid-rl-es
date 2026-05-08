@@ -3,7 +3,15 @@ from __future__ import annotations
 
 
 def compute_reward_v3(info: dict, reward_weights: dict) -> float:
-    """Compute the V3 reward while tolerating missing metric fields."""
+    """Compute the weighted V3 reward from environment metrics.
+
+    Args:
+        info: Metrics produced by ``SmartGridEnvV3.step``.
+        reward_weights: Scenario or PSO-proposed reward weights.
+
+    Returns:
+        Scalar reward used by the Q-learning update.
+    """
     demand_covered = float(info.get("demand_covered", 0))
     unmet_demand = float(info.get("unmet_demand", 0))
     grid_bought = float(info.get("grid_bought", 0))

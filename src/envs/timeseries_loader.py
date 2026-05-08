@@ -38,6 +38,15 @@ def _validate_range(df: pd.DataFrame, column: str, lower: int, upper: int, csv_p
 
 
 def load_timeseries(csv_path: str | Path) -> pd.DataFrame:
+    """Load and validate a synthetic V3 time-series CSV.
+
+    Args:
+        csv_path: CSV path containing step, hour, weather, demand, renewable
+            and price columns.
+
+    Returns:
+        A validated DataFrame with discrete integer columns.
+    """
     csv_path = Path(csv_path)
     if not csv_path.exists():
         raise FileNotFoundError(f"Timeseries CSV not found: {csv_path}")

@@ -27,7 +27,13 @@ class SmartGridEnv(gym.Env):
 
     metadata = {"render_modes": ["human"], "render_fps": 4}
 
-    def __init__(self, max_steps: int = 24, seed: int | None = None):
+    def __init__(self, max_steps: int = 24, seed: int | None = None) -> None:
+        """Create the base V2 smart-grid environment.
+
+        Args:
+            max_steps: Episode length before truncation.
+            seed: Optional seed for reproducible state sampling.
+        """
         super().__init__()
         self.max_battery = 2
         self.max_steps = max_steps
@@ -38,6 +44,7 @@ class SmartGridEnv(gym.Env):
         self.current_step = 0
 
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
+        """Reset the episode and sample the initial discrete state."""
         super().reset(seed=seed)
         if seed is not None:
             self._rng = np.random.default_rng(seed)
@@ -64,6 +71,7 @@ class SmartGridEnv(gym.Env):
         return self.state.copy(), info
 
     def step(self, action: int):
+        """Apply one energy-management action and return the next transition."""
         if not self.action_space.contains(action):
             raise ValueError(f"Action outside the action space: {action}")
 
@@ -138,7 +146,8 @@ class SmartGridEnv(gym.Env):
         truncated = self.current_step >= self.max_steps
         return self.state.copy(), float(reward), terminated, truncated, current_info
 
-    def render(self):
+    def render(self) -> None:
+        """Print a compact text representation of the current state."""
         battery, demand, renewable, period = map(int, self.state)
         print(
             f"step={self.current_step} period={period} battery={battery} demand={demand} renewable={renewable}"
@@ -177,6 +186,7 @@ class SmartGridEnv(gym.Env):
         invalid_action: int,
         demand_covered: int | None = None,
     ) -> dict[str, Any]:
+        """Build the info dictionary shared by training and evaluation code."""
         if demand_covered is None:
             demand_covered = max(0, demand - unmet_demand)
 

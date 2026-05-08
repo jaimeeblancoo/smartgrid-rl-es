@@ -41,22 +41,27 @@ UPPER_BOUND = np.array([4.0, -2.0, -0.2, 2.0, -0.5, -0.1, -0.005], dtype=float)
 
 
 def current_run_date() -> str:
+    """Return the date tag used in V3.1 output filenames."""
     return datetime.now().strftime("%Y-%m-%d")
 
 
 def parse_int_list(value: str) -> list[int]:
+    """Parse a comma-separated CLI argument into integers."""
     return [int(item.strip()) for item in value.split(",") if item.strip()]
 
 
 def parse_float_list(value: str) -> list[float]:
+    """Parse a comma-separated CLI argument into floats."""
     return [float(item.strip()) for item in value.split(",") if item.strip()]
 
 
 def vector_to_reward_weights(vector: np.ndarray) -> dict[str, float]:
+    """Convert a PSO particle vector into V3 reward weights."""
     return {name: float(value) for name, value in zip(VECTOR_ORDER, vector)}
 
 
 def build_agent(env: SmartGridEnvV3, cfg: dict[str, Any], seed: int) -> QLearningAgent:
+    """Create a Q-learning agent compatible with a V3 environment."""
     return QLearningAgent(
         state_shape=env.observation_space.nvec,
         action_size=env.action_space.n,
@@ -75,6 +80,11 @@ def train_temporary_agent(
     episodes: int,
     seed: int,
 ) -> QLearningAgent:
+    """Train a temporary Q-learning agent for one PSO candidate.
+
+    The agent is not saved to disk because PSO evaluates many candidate reward
+    vectors and only the optimization results are persisted.
+    """
     cfg = get_v3_training_config_for_scenario(scenario)
     cfg["episodes"] = episodes
     scenario_path = get_v3_scenario_path(scenario)
@@ -108,6 +118,7 @@ def evaluate_agent(
     reward_weights: dict[str, float],
     seed: int,
 ) -> dict[str, float]:
+    """Evaluate a temporary PSO-trained agent greedily on the eval CSV."""
     scenario_path = get_v3_scenario_path(scenario)
     env = SmartGridEnvV3(
         scenario_path=scenario_path,
@@ -162,6 +173,11 @@ def evaluate_agent(
 
 
 def compute_fitness(metrics: dict[str, float]) -> float:
+    """Compute the PSO fitness score from V3 evaluation metrics.
+
+    The score rewards high episode reward and coverage while penalizing unmet
+    demand, energy risk and invalid actions.
+    """
     return (
         metrics["avg_reward"]
         + 50 * metrics["avg_coverage"]
@@ -177,6 +193,7 @@ def evaluate_candidate(
     episodes: int,
     seed: int,
 ) -> tuple[float, dict[str, float], dict[str, float]]:
+    """Train and evaluate one PSO candidate reward-weight vector."""
     reward_weights = vector_to_reward_weights(vector)
     agent = train_temporary_agent(
         scenario=scenario,
@@ -195,7 +212,9 @@ def evaluate_candidate(
 
 
 def make_objective(scenario: str, episodes: int, seed: int):
+    """Create the minimization objective expected by ``pyswarm.pso``."""
     def objective(vector: np.ndarray) -> float:
+        """Return negative fitness because ``pyswarm`` minimizes."""
         fitness, _, _ = evaluate_candidate(
             vector=np.asarray(vector, dtype=float),
             scenario=scenario,
@@ -222,6 +241,7 @@ def create_result_record(
     reward_weights: dict[str, float],
     metrics: dict[str, float],
 ) -> dict[str, Any]:
+    """Create one tabular result row for a PSO hyperparameter combination."""
     record: dict[str, Any] = {
         "iteration": iteration,
         "scenario": scenario,
@@ -245,6 +265,7 @@ def save_outputs(
     scenario: str,
     output_prefix: str | None,
 ) -> tuple[Path, Path, Path]:
+    """Save the V3.1 PSO CSV, best-config JSON and fitness plot."""
     date_tag = current_run_date()
     prefix = f"{output_prefix}_" if output_prefix else ""
     summary_path = (
@@ -317,6 +338,7 @@ def save_outputs(
 
 
 def run_pso_grid_search(args: argparse.Namespace) -> tuple[pd.DataFrame, Path, Path, Path]:
+    """Run PSO across the configured hyperparameter grid."""
     swarmsizes = parse_int_list(args.swarmsizes)
     omegas = parse_float_list(args.omegas)
     phips = parse_float_list(args.phips)
@@ -388,6 +410,7 @@ def run_pso_grid_search(args: argparse.Namespace) -> tuple[pd.DataFrame, Path, P
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line parser for the V3.1 PSO experiment."""
     parser = argparse.ArgumentParser(
         description="Optional V3.1 PSO reward-weight tuning experiment."
     )
@@ -404,6 +427,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    """Run the V3.1 PSO reward-weight tuning CLI."""
     args = build_parser().parse_args()
     results_df, summary_path, best_config_path, plot_path = run_pso_grid_search(args)
     best = results_df.sort_values("fitness_best", ascending=False).iloc[0]

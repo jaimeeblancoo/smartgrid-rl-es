@@ -12,6 +12,7 @@ COMPARISON_DIR = Path("results/comparison")
 
 
 def find_latest_csv(folder: Path) -> Path | None:
+    """Return the most recent CSV file in a folder, if available."""
     if not folder.exists():
         return None
     files = sorted(folder.glob("*.csv"))
@@ -21,6 +22,7 @@ def find_latest_csv(folder: Path) -> Path | None:
 
 
 def load_summary(path: Path, version: str) -> pd.DataFrame:
+    """Load a summary CSV and annotate it with its project version."""
     df = pd.read_csv(path)
     df.insert(0, "version", version)
     df.insert(1, "source_file", path.name)
@@ -28,6 +30,7 @@ def load_summary(path: Path, version: str) -> pd.DataFrame:
 
 
 def save_plot(comparison: pd.DataFrame) -> None:
+    """Save a V2/V3 metric comparison plot when comparable columns exist."""
     try:
         import matplotlib.pyplot as plt
     except ImportError:
@@ -58,6 +61,7 @@ def save_plot(comparison: pd.DataFrame) -> None:
 
 
 def main() -> None:
+    """Create a comparison CSV and plot from the latest V2 and V3 summaries."""
     v2_summary = find_latest_csv(V2_SUMMARIES_DIR)
     v3_summary = find_latest_csv(V3_SUMMARIES_DIR)
 

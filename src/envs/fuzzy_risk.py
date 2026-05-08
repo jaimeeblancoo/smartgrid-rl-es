@@ -48,7 +48,17 @@ def compute_energy_risk(
     renewable: int,
     price: int,
 ) -> dict[str, float | int | str]:
-    """Compute a fuzzy energy-risk score from discrete V3 state values."""
+    """Compute a fuzzy energy-risk score from discrete V3 state values.
+
+    Args:
+        battery: Current battery level.
+        demand: Current demand level.
+        renewable: Current renewable generation level.
+        price: Current price level.
+
+    Returns:
+        Dictionary with ``risk_score``, ``risk_level`` and ``risk_level_name``.
+    """
     battery_value = max(0.0, min(4.0, float(battery)))
     demand_value = max(0.0, min(3.0, float(demand)))
     renewable_value = max(0.0, min(3.0, float(renewable)))

@@ -12,6 +12,7 @@ DEMOS_DIR = RESULTS_DIR / "v3" / "demos"
 
 
 def get_latest_summary_file() -> Path | None:
+    """Return the newest V3 evaluation summary CSV, if one exists."""
     if not SUMMARIES_DIR.exists():
         return None
     files = sorted(SUMMARIES_DIR.glob("*.csv"))
@@ -21,16 +22,19 @@ def get_latest_summary_file() -> Path | None:
 
 
 def get_demo_files() -> list[Path]:
+    """Return available V3 demo episode CSV files."""
     if not DEMOS_DIR.exists():
         return []
     return sorted(DEMOS_DIR.glob("*.csv"))
 
 
 def load_csv(path: Path) -> pd.DataFrame:
+    """Load a dashboard CSV file into a DataFrame."""
     return pd.read_csv(path)
 
 
 def main() -> None:
+    """Render the Streamlit dashboard for V3 summaries and demo episodes."""
     st.set_page_config(page_title="SmartGrid-ES V3 Dashboard", layout="wide")
 
     st.title("SmartGrid-ES V3 Dashboard")

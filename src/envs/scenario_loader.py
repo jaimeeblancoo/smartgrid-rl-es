@@ -29,6 +29,19 @@ def _resolve_from_repo_root(path_value: str | Path) -> Path:
 
 
 def load_scenario(json_path: str | Path) -> dict[str, Any]:
+    """Load and validate a V3 JSON scenario configuration.
+
+    Args:
+        json_path: Path to the scenario JSON file.
+
+    Returns:
+        Scenario dictionary with CSV paths resolved from the repository root.
+
+    Raises:
+        FileNotFoundError: If the JSON or referenced CSV files do not exist.
+        ValueError: If required fields or reward weights are missing.
+        NotImplementedError: If a declared scenario mode is not implemented.
+    """
     json_path = Path(json_path)
     if not json_path.exists():
         raise FileNotFoundError(f"Scenario JSON not found: {json_path}")

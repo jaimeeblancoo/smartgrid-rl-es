@@ -25,12 +25,14 @@ SCENARIOS = ["baseline", "winter", "summer", "demand_noise", "battery_loss", "co
 
 
 def current_run_date() -> str:
+    """Return the date tag used in generated evaluation filenames."""
     return datetime.now().strftime("%Y-%m-%d")
 
 
 # ─── V2 evaluation (unchanged) ────────────────────────────────────────────────
 
-def evaluate_agent(scenario_name: str) -> dict:
+def evaluate_agent(scenario_name: str) -> dict[str, float | str]:
+    """Evaluate a trained V2 agent on one scenario."""
     train_cfg = get_training_config_for_scenario(scenario_name)
     env = build_env_from_scenario(
         scenario_name=scenario_name,
@@ -93,7 +95,8 @@ def evaluate_agent(scenario_name: str) -> dict:
     }
 
 
-def main():
+def main() -> None:
+    """Evaluate all available trained V2 scenarios and save a summary."""
     rows = []
     missing_models = []
 
@@ -128,8 +131,15 @@ def main():
 
 # ─── V3 evaluation ────────────────────────────────────────────────────────────
 
-def evaluate_agent_v3(scenario_name: str) -> dict:
-    """Evaluate a trained V3 agent using the eval CSV timeseries."""
+def evaluate_agent_v3(scenario_name: str) -> dict[str, float | str]:
+    """Evaluate a trained V3 agent using the eval CSV time series.
+
+    Args:
+        scenario_name: Name of a configured V3 scenario.
+
+    Returns:
+        Dictionary with reward, coverage, grid, risk and action-validity metrics.
+    """
     cfg = get_v3_training_config_for_scenario(scenario_name)
     scenario_path = get_v3_scenario_path(scenario_name)
     env = SmartGridEnvV3(scenario_path=scenario_path, mode="eval", seed=cfg["seed"])
@@ -212,8 +222,8 @@ def evaluate_agent_v3(scenario_name: str) -> dict:
     }
 
 
-def main_v3(scenario_names: list) -> None:
-    """Evaluate all given V3 scenarios and save a combined summary."""
+def main_v3(scenario_names: list[str]) -> None:
+    """Evaluate the selected V3 scenarios and save a combined summary."""
     rows = []
     missing_models = []
 

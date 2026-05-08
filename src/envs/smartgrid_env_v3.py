@@ -15,7 +15,12 @@ from src.envs.timeseries_loader import hour_to_period, load_timeseries
 
 
 class SmartGridEnvV3(gym.Env):
-    """Discrete Gymnasium environment for V3, fed by a synthetic CSV."""
+    """Discrete Gymnasium environment for the final V3 pipeline.
+
+    The environment reads JSON scenario configuration and synthetic CSV time
+    series. Its observable state is discrete and does not include fuzzy risk,
+    although risk is exposed through ``info`` and used by the V3 reward.
+    """
 
     metadata = {"render_modes": []}
 
@@ -26,6 +31,16 @@ class SmartGridEnvV3(gym.Env):
         seed: int | None = None,
         reward_weights_override: dict | None = None,
     ) -> None:
+        """Create a V3 environment from a JSON scenario file.
+
+        Args:
+            scenario_path: Path to the V3 scenario JSON file.
+            mode: ``"train"`` to use the training CSV or ``"eval"`` for the
+                evaluation CSV.
+            seed: Optional seed for reproducible environment state.
+            reward_weights_override: Optional reward weights used by V3.1 PSO
+                experiments. When omitted, the scenario JSON weights are used.
+        """
         super().__init__()
         self.config = load_scenario(scenario_path)
         if mode == "train":
@@ -52,6 +67,7 @@ class SmartGridEnvV3(gym.Env):
         self.step_idx = 0
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
+        """Reset the episode and return the first V3 observation and risk info."""
         if seed is not None:
             self._rng = np.random.default_rng(seed)
             super().reset(seed=seed)
@@ -77,6 +93,7 @@ class SmartGridEnvV3(gym.Env):
         return obs, info
 
     def step(self, action: int):
+        """Apply one V3 action and return the transition tuple."""
         if self.step_idx >= len(self.timeseries) or self.step_idx >= self.max_steps:
             obs = self._build_observation()
             row = self._current_row()
@@ -123,6 +140,7 @@ class SmartGridEnvV3(gym.Env):
         return self.timeseries.iloc[idx]
 
     def _build_observation(self) -> np.ndarray:
+        """Build the discrete V3 observation without adding fuzzy risk."""
         row = self._current_row()
         demand = min(int(row["demand_level"]), 3)
         renewable = min(int(row["renewable_level"]), 3)
@@ -134,6 +152,7 @@ class SmartGridEnvV3(gym.Env):
                         dtype=np.int64)
 
     def _apply_action(self, action: int, demand: int, renewable: int) -> dict[str, int]:
+        """Apply the selected action to battery, demand and renewable balance."""
         demand_covered = min(renewable, demand)
         unmet_demand = max(0, demand - renewable)
         grid_bought = 0

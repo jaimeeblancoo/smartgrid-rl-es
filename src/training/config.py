@@ -46,6 +46,7 @@ V3_EVALUATION_CONFIG = {
 
 
 def get_training_config_for_scenario(scenario_name: str) -> dict:
+    """Return the V2 training configuration with scenario overrides applied."""
     cfg = dict(TRAINING_CONFIG)
     cfg.update(SCENARIO_TRAINING_OVERRIDES.get(scenario_name, {}))
     return cfg
@@ -96,6 +97,7 @@ V3_SCENARIO_TRAINING_OVERRIDES = {
 
 
 def get_v3_scenario_path(scenario_name: str) -> Path:
+    """Return the JSON scenario path for a configured V3 scenario."""
     if scenario_name not in V3_SCENARIO_PATHS:
         raise ValueError(
             f"Unknown V3 scenario: '{scenario_name}'. "
@@ -105,6 +107,7 @@ def get_v3_scenario_path(scenario_name: str) -> Path:
 
 
 def get_v3_training_config_for_scenario(scenario_name: str) -> dict:
+    """Return the V3 training configuration with scenario overrides applied."""
     cfg = dict(V3_TRAINING_CONFIG)
     cfg.update(V3_SCENARIO_TRAINING_OVERRIDES.get(scenario_name, {}))
     return cfg

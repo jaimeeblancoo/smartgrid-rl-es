@@ -7,7 +7,14 @@ import numpy as np
 class SeasonWrapper(gym.Wrapper):
     """Apply a simple seasonal profile to demand and renewable generation."""
 
-    def __init__(self, env: gym.Env, season: str, seed: int | None = None):
+    def __init__(self, env: gym.Env, season: str, seed: int | None = None) -> None:
+        """Create a seasonal wrapper for a V2 environment.
+
+        Args:
+            env: Base Gymnasium environment to wrap.
+            season: Either ``"winter"`` or ``"summer"``.
+            seed: Optional seed for reproducible seasonal adjustments.
+        """
         super().__init__(env)
         if season not in {"winter", "summer"}:
             raise ValueError(f"Unsupported season: {season}")
@@ -15,6 +22,7 @@ class SeasonWrapper(gym.Wrapper):
         self._rng = np.random.default_rng(seed)
 
     def reset(self, *, seed=None, options=None):
+        """Reset the wrapped environment and apply the seasonal profile."""
         if seed is not None:
             self._rng = np.random.default_rng(seed)
 
@@ -29,6 +37,7 @@ class SeasonWrapper(gym.Wrapper):
         return obs, info
 
     def step(self, action):
+        """Run one step and adjust the resulting observation by season."""
         obs, reward, terminated, truncated, info = self.env.step(action)
         obs = self._apply_season(obs)
         self.unwrapped.state = obs.copy()
@@ -40,6 +49,7 @@ class SeasonWrapper(gym.Wrapper):
         return obs, reward, terminated, truncated, info
 
     def _apply_season(self, obs):
+        """Return a season-adjusted V2 observation."""
         battery, demand, renewable, period = map(int, obs)
 
         if self.season == "winter":

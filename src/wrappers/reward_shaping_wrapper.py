@@ -23,9 +23,11 @@ class RewardShapingWrapper(gym.Wrapper):
         self.invalid_action_penalty = invalid_action_penalty
 
     def reset(self, **kwargs):
+        """Reset the wrapped environment without changing its observation."""
         return self.env.reset(**kwargs)
 
     def step(self, action: int):
+        """Run one step and add shaping terms to the base reward."""
         obs, reward, terminated, truncated, info = self.env.step(action)
 
         info = dict(info)

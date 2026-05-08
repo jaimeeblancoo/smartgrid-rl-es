@@ -24,6 +24,7 @@ class BatteryLossWrapper(gym.Wrapper):
         self.leakage_prob = leakage_prob
 
     def reset(self, **kwargs):
+        """Reset the environment and initialize battery-loss metadata."""
         obs, info = self.env.reset(**kwargs)
         info = dict(info)
         info["battery_losses"] = 0
@@ -32,6 +33,7 @@ class BatteryLossWrapper(gym.Wrapper):
         return obs, info
 
     def step(self, action: int):
+        """Run one step and optionally apply a one-level battery loss."""
         obs, reward, terminated, truncated, info = self.env.step(action)
 
         obs = np.array(obs, dtype=np.int64)

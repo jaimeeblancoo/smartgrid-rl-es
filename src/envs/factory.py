@@ -36,6 +36,19 @@ def build_env_from_scenario(
     max_steps: int,
     seed: int | None = None,
 ):
+    """Build a V2 environment with the wrappers required by a scenario.
+
+    Args:
+        scenario_name: Name of the configured V2 scenario.
+        max_steps: Maximum number of steps in one episode.
+        seed: Optional seed passed to the base environment and stochastic wrappers.
+
+    Returns:
+        A Gymnasium-compatible environment ready for training or evaluation.
+
+    Raises:
+        ValueError: If the scenario is unknown or configured without implementation.
+    """
     if scenario_name not in SCENARIO_CONFIGS:
         raise ValueError(f"Unknown scenario: {scenario_name}")
 

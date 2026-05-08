@@ -21,12 +21,14 @@ from src.utils.plotting import plot_rewards
 
 
 def current_run_date() -> str:
+    """Return the date tag used in generated result filenames."""
     return datetime.now().strftime("%Y-%m-%d")
 
 
 # ─── V2 training (unchanged) ──────────────────────────────────────────────────
 
 def train_agent(scenario_name: str):
+    """Train a tabular Q-learning agent on one V2 scenario."""
     cfg = get_training_config_for_scenario(scenario_name)
     env = build_env_from_scenario(
         scenario_name=scenario_name,
@@ -87,6 +89,7 @@ def train_agent(scenario_name: str):
 
 
 def save_demo_episode(env, agent: QLearningAgent, scenario_name: str, seed: int) -> Path:
+    """Run one greedy V2 demo episode and save it as a CSV file."""
     original_epsilon = agent.epsilon
     agent.epsilon = 0.0
     rows = []
@@ -122,7 +125,8 @@ def save_demo_episode(env, agent: QLearningAgent, scenario_name: str, seed: int)
     return output_path
 
 
-def run_training_pipeline(scenario_name: str):
+def run_training_pipeline(scenario_name: str) -> None:
+    """Run the complete V2 training pipeline for one scenario."""
     agent, rewards_history, env, cfg = train_agent(scenario_name=scenario_name)
 
     model_path = Path("results/models") / f"q_table_{scenario_name}.npy"
@@ -143,7 +147,14 @@ def run_training_pipeline(scenario_name: str):
 # ─── V3 training ──────────────────────────────────────────────────────────────
 
 def train_agent_v3(scenario_name: str):
-    """Train a tabular Q-learning agent on a V3 scenario loaded from JSON."""
+    """Train a tabular Q-learning agent on a V3 scenario loaded from JSON.
+
+    Args:
+        scenario_name: Name of a configured V3 scenario.
+
+    Returns:
+        The trained agent, reward history, environment and training config.
+    """
     cfg = get_v3_training_config_for_scenario(scenario_name)
     scenario_path = get_v3_scenario_path(scenario_name)
     env = SmartGridEnvV3(scenario_path=scenario_path, mode="train", seed=cfg["seed"])
@@ -202,7 +213,11 @@ def train_agent_v3(scenario_name: str):
 def save_demo_episode_v3(
     env: SmartGridEnvV3, agent: QLearningAgent, scenario_name: str, seed: int
 ) -> Path:
-    """Run one greedy episode and save a detailed V3 demo CSV."""
+    """Run one greedy episode and save a detailed V3 demo CSV.
+
+    The demo includes the V3 risk fields so the dashboard can visualize the
+    same risk signal used by the reward function.
+    """
     original_epsilon = agent.epsilon
     agent.epsilon = 0.0
     rows = []
@@ -250,8 +265,8 @@ def save_demo_episode_v3(
     return output_path
 
 
-def run_training_pipeline_v3(scenario_name: str):
-    """Full V3 training pipeline: train, save model, plot, demo episode."""
+def run_training_pipeline_v3(scenario_name: str) -> None:
+    """Run the complete V3 training pipeline for one scenario."""
     print(f"\nTraining V3 scenario: {scenario_name}")
     agent, rewards_history, env, cfg = train_agent_v3(scenario_name=scenario_name)
 
