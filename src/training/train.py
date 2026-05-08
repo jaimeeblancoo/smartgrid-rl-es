@@ -10,7 +10,6 @@ from src.agents.qlearning_agent import QLearningAgent
 from src.envs.factory import build_env_from_scenario
 from src.envs.smartgrid_env_v3 import SmartGridEnvV3
 from src.training.config import (
-    EVALUATION_CONFIG,
     V3_SCENARIOS,
     get_training_config_for_scenario,
     get_v3_scenario_path,

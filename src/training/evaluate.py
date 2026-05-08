@@ -11,6 +11,7 @@ from src.envs.factory import build_env_from_scenario
 from src.envs.smartgrid_env_v3 import SmartGridEnvV3
 from src.training.config import (
     EVALUATION_CONFIG,
+    V3_EVALUATION_CONFIG,
     V3_SCENARIOS,
     get_training_config_for_scenario,
     get_v3_scenario_path,
@@ -155,8 +156,8 @@ def evaluate_agent_v3(scenario_name: str) -> dict:
     risk_scores = []
     invalid_rates = []
 
-    for episode_idx in range(EVALUATION_CONFIG["eval_episodes"]):
-        state, _ = env.reset(seed=EVALUATION_CONFIG["eval_seed_offset"] + episode_idx)
+    for episode_idx in range(V3_EVALUATION_CONFIG["eval_episodes"]):
+        state, _ = env.reset(seed=V3_EVALUATION_CONFIG["eval_seed_offset"] + episode_idx)
         done = False
         reward_total = 0.0
         demand_total = 0.0

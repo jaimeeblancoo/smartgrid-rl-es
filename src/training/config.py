@@ -37,6 +37,13 @@ EVALUATION_CONFIG = {
     "eval_seed_offset": 10000,
 }
 
+# V3 evaluation runs one episode: the eval CSV is a fixed deterministic sequence,
+# so every greedy episode with the same initial state is identical.
+V3_EVALUATION_CONFIG = {
+    "eval_episodes": 1,
+    "eval_seed_offset": 10000,
+}
+
 
 def get_training_config_for_scenario(scenario_name: str) -> dict:
     cfg = dict(TRAINING_CONFIG)
