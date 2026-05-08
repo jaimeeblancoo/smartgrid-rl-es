@@ -236,6 +236,58 @@ The dashboard reads data from:
 
 ---
 
+## V3 usage
+
+V3 scenarios are trained and evaluated from the command line using the same scripts as V2, selecting `--version v3`.
+
+### Training
+
+Train a single V3 scenario:
+
+```bash
+python -m src.training.train --version v3 --scenario baseline_v3
+```
+
+Train all V3 scenarios sequentially:
+
+```bash
+python -m src.training.train --version v3 --all-v3
+```
+
+Available V3 scenarios: `baseline_v3`, `winter_peak`, `summer_surplus`, `grid_stress`, `renewable_volatility`.
+
+### Evaluation
+
+Evaluate a single V3 scenario (requires a trained model):
+
+```bash
+python -m src.training.evaluate --version v3 --scenario baseline_v3
+```
+
+Evaluate all V3 scenarios:
+
+```bash
+python -m src.training.evaluate --version v3 --all-v3
+```
+
+### Dashboard
+
+```bash
+streamlit run src/dashboard/app.py
+```
+
+### V3 output locations
+
+| Artifact | Path |
+|---|---|
+| Q-table model | `results/v3/models/q_table_<scenario>.npy` |
+| Training plot | `results/v3/plots/training_rewards_<scenario>_<date>.png` |
+| Demo episode CSV | `results/v3/demos/smartgrid_v3_demo_episode_<scenario>_<date>.csv` |
+| Evaluation summary | `results/v3/summaries/smartgrid_v3_evaluation_summary_<date>.csv` |
+| Comparison plot | `results/v3/plots/v3_evaluation_comparison_<date>.png` |
+
+---
+
 ## V3 development
 
 `v3-dev` is the development branch for SmartGrid-ES V3.

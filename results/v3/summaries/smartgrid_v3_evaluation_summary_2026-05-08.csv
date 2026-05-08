@@ -1,0 +1,2 @@
+scenario,avg_reward,avg_coverage,avg_unmet_demand,avg_grid_bought,avg_sold,avg_wasted_renewable,avg_battery_end,avg_risk_score,invalid_action_rate
+baseline_v3,-169.96250000000015,0.9389067524115756,19.0,129.0,19.0,4.0,0.0,76.89732142857139,0.10714285714285714
