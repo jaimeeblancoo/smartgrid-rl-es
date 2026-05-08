@@ -1,264 +1,142 @@
 # SmartGrid-ES
 
-SmartGrid-ES is an academic reinforcement learning project that models a simplified electrical microgrid inspired by a smart grid.
+SmartGrid-ES is an academic reinforcement learning project for a simplified smart-grid-inspired microgrid.
 
-This repository contains the **V2** version of the project.  
-V2 keeps the small and discrete base from V1, but extends it with:
-- scenario-based environment construction,
-- wrapper-based behavior changes,
-- comparative evaluation across scenarios,
-- generated CSV outputs,
-- and a lightweight dashboard to inspect results.
+The project studies how an interpretable tabular Q-learning agent can learn energy-management decisions in controlled synthetic scenarios. The environment is intentionally discrete and simplified: the goal is not to reproduce a detailed real power system, but to build a clear, reproducible and defensible reinforcement learning pipeline for coursework.
 
-The goal is not to simulate a fully realistic power grid, but to build a **small, functional, and extensible RL system** that is easy to understand, test, and extend in future versions.
+V2 introduced wrappers and comparative evaluation. V3 is the current final version of the project, and adds a custom Gymnasium environment, synthetic CSV time series, JSON scenario configuration, fuzzy energy risk, richer metrics, a V3 dashboard and a V3.1 PSO reward-weight tuning feature.
 
 ---
 
-## Project purpose
+## Final V3 overview
 
-The project studies how a tabular Q-learning agent can learn decision rules inside a simplified microgrid.
+V3 moves beyond the V2 wrapper-based extension into a dedicated custom Gymnasium environment: `SmartGridEnvV3`.
 
-At each step, the agent must decide how to manage available energy:
-- use stored battery energy,
-- buy electricity from the external grid,
-- store renewable surplus,
-- or sell renewable surplus.
+The final V3 pipeline includes:
+- synthetic CSV time series for reproducible demand, renewable generation, weather and price profiles,
+- external scenario configuration through JSON files,
+- five V3 scenarios for controlled comparison,
+- tabular Q-learning for interpretability,
+- fuzzy energy risk as a metric, reward penalty and dashboard signal,
+- V3 training and evaluation commands,
+- a V3 Streamlit dashboard,
+- representative V3 result artifacts,
+- and V3.1 PSO reward-weight tuning with `pyswarm`.
 
-The agent is trained to:
-- cover demand,
-- reduce unmet demand,
-- avoid excessive grid dependence,
-- and behave reasonably under different operating scenarios.
+V3.1 is included in the final V3 branch as an optimization layer. It does not replace Q-learning: PSO searches for reward-weight configurations, while Q-learning remains the learning agent.
 
----
-
-## V2 objective
-
-V1 established the basic architecture:
-- a discrete Gymnasium environment,
-- a tabular Q-learning agent,
-- and a simple training flow.
-
-V2 builds on top of that foundation by adding:
-- **scenarios** through an environment factory,
-- **wrappers** that modify behavior without rewriting the base environment,
-- **evaluation across multiple scenarios**,
-- **CSV and plot outputs** for analysis,
-- and a **Streamlit dashboard** to inspect generated results.
-
-This makes the project more structured and closer to a real experimentation workflow, while still staying simple and appropriate for an academic team project.
+The project remains local, reproducible and academic. It does not use external APIs, LLM agents, live real-world data, deep learning or real multi-agent reinforcement learning.
 
 ---
 
-## Environment design
+## Course concepts used
 
-The environment represents a simplified microgrid with:
-- a battery,
-- a current demand level,
-- a renewable generation level,
-- and a time period of the day.
+| Course concept | Implementation in SmartGrid-ES |
+|---|---|
+| Reinforcement Learning | Tabular Q-learning agent |
+| Gymnasium environments | Custom `SmartGridEnvV3` |
+| MDP formulation | Discrete state, actions, reward and transitions |
+| Fuzzy logic | Fuzzy energy risk score |
+| Evolutionary optimization / PSO | V3.1 reward-weight tuning with `pyswarm` |
+| Experimental evaluation | Scenario metrics, plots, CSV outputs and dashboard |
 
-The environment is discrete, which makes it suitable for tabular Q-learning.
+Markov mode is not implemented in the current V3 delivery. It can be considered only as a possible future extension.
 
-### State variables
+---
 
-The state is:
+## V3 environment design
+
+`SmartGridEnvV3` represents a simplified microgrid with battery storage, electricity demand, renewable generation, market price, time period and weather conditions.
+
+The V3 observable state is:
 
 ```text
-(battery, demand, renewable, period)
+[battery, demand, renewable, price, period, weather]
 ```
 
-Each component is discrete:
+These are discrete levels, not continuous real-world measurements.
 
-| Variable | Meaning | Range |
-|---|---|---|
-| `battery` | energy currently available in storage | `0..2` |
-| `demand` | current electricity demand level | `0..2` |
-| `renewable` | current renewable generation level | `0..2` |
-| `period` | time period of the day | `0..3` |
+| State variable | Meaning |
+|---|---|
+| `battery` | current stored energy level |
+| `demand` | current electricity demand level |
+| `renewable` | current renewable generation level |
+| `price` | current electricity price level |
+| `period` | time-of-day period |
+| `weather` | simplified weather condition level |
 
-### Meaning of each variable
-
-- **battery**: how much stored energy is available in the battery.
-- **demand**: how much energy is currently needed.
-- **renewable**: how much renewable energy is currently being generated.
-- **period**: a simplified time-of-day indicator used to vary demand and renewable patterns.
-
-These are **discrete levels**, not continuous real-world measurements.
-
----
-
-## Action space
-
-The action space has 4 discrete actions:
+The V3 action space has five discrete actions:
 
 | Action ID | Meaning |
 |---|---|
 | `0` | use battery |
 | `1` | buy from grid |
-| `2` | store surplus energy |
-| `3` | sell surplus energy |
+| `2` | store surplus |
+| `3` | sell surplus |
+| `4` | hold |
 
-### Action intuition
+Fuzzy risk is calculated separately and is not part of `observation_space`. The risk outputs are:
+- `risk_score`
+- `risk_level`
+- `risk_level_name`
 
-- **use battery**: use stored energy to help cover a demand deficit.
-- **buy from grid**: buy energy externally when renewable generation is not enough.
-- **store surplus energy**: save extra renewable energy in the battery when possible.
-- **sell surplus energy**: sell renewable surplus instead of storing it.
-
----
-
-## Reward intuition
-
-The reward is designed to guide the agent toward reasonable energy-management behavior.
-
-In general, the reward:
-- **encourages covering demand**,
-- **strongly penalizes unmet demand**,
-- **penalizes unnecessary dependence on the external grid**,
-- **can reward selling surplus energy**,
-- and **penalizes invalid actions**.
-
-Some V2 scenarios also apply additional reward shaping through wrappers.
+Risk is used as:
+- an evaluation metric,
+- a V3 reward penalty,
+- and a dashboard visualization signal.
 
 ---
 
-## Available scenarios in V2
+## V3 reward intuition
 
-V2 supports the following scenarios through `src/envs/factory.py`:
+The V3 reward function is designed to guide the agent toward reasonable energy-management behavior.
 
-- `baseline`
-- `winter`
-- `summer`
-- `demand_noise`
-- `battery_loss`
-- `combined_v2`
+It rewards or penalizes:
+- covered demand,
+- unmet demand,
+- grid energy bought,
+- surplus energy sold,
+- invalid actions,
+- wasted renewable energy,
+- and fuzzy energy risk.
 
-### Scenario meaning
-
-- **baseline**: the base environment with no extra wrapper modifications.
-- **winter**: seasonal conditions that reflect a winter profile.
-- **summer**: seasonal conditions that reflect a summer profile.
-- **demand_noise**: introduces occasional stochastic demand spikes.
-- **battery_loss**: simulates simple battery inefficiency and losses.
-- **combined_v2**: combines seasonal effects, demand noise, battery loss, and reward shaping.
+The reward is still part of a simplified academic simulation. It is not intended to represent a real electricity-market settlement model.
 
 ---
 
-## Wrappers used in V2
+## V3 scenarios
 
-V2 extends the environment through wrappers instead of rewriting the base environment.
+V3 includes five scenarios:
+- `baseline_v3`
+- `winter_peak`
+- `summer_surplus`
+- `grid_stress`
+- `renewable_volatility`
 
-### `SeasonWrapper`
-Applies a seasonal profile to demand and renewable generation.
+Each V3 scenario uses:
+- a JSON configuration file in `data/scenarios/`,
+- a training CSV time series,
+- and an evaluation CSV time series.
 
-### `DemandNoiseWrapper`
-Introduces occasional demand spikes during the episode.
-
-### `BatteryLossWrapper`
-Simulates battery inefficiency while keeping the state discrete.
-
-### `RewardShapingWrapper`
-Adjusts the reward signal without modifying the base environment logic.
-
-This wrapper-based design is one of the main differences between V1 and V2.
+This design separates scenario data from environment code and makes the experiments easier to reproduce.
 
 ---
 
-## Training and evaluation
+## V3 training, evaluation and dashboard
 
-### Training
-
-Training is handled through:
-
-```bash
-python -m src.training.train --scenario baseline
-```
-
-You can replace `baseline` with any of the supported scenarios.
-
-Training:
-- builds the environment through the scenario factory,
-- trains a tabular Q-learning agent,
-- saves a model,
-- saves a training plot,
-- and exports a demo episode as CSV.
-
-### Evaluation
-
-Evaluation is handled through:
-
-```bash
-python -m src.training.evaluate
-```
-
-Evaluation:
-- loads trained models from the different scenarios,
-- computes summary metrics,
-- exports a summary CSV,
-- and generates a comparison plot.
-
-### Suggested workflow
-
-A simple and recommended execution order for V2 is:
-
-1. Train one or more scenarios:
-   - `python -m src.training.train --scenario baseline`
-   - `python -m src.training.train --scenario combined_v2`
-
-2. Run the evaluation script:
-   - `python -m src.training.evaluate`
-
-3. Open the dashboard:
-   - `streamlit run src/dashboard/app.py`
-
-This makes it easier to generate the required files in the correct order before inspecting them in the dashboard.
-
----
-
-## Dashboard
-
-The project includes a lightweight Streamlit dashboard:
-
-```bash
-streamlit run src/dashboard/app.py
-```
-
-The dashboard is designed to:
-- load the latest evaluation summary,
-- inspect generated demo episode CSV files,
-- show tables and simple charts,
-- and provide a readable visual summary of the V2 outputs.
-
-The dashboard reads data from:
-- `results/summaries/`
-- `results/demos/`
-
----
-
-## V3 usage
-
-V3 scenarios are trained and evaluated from the command line using the same scripts as V2, selecting `--version v3`.
-
-### Training
-
-Train a single V3 scenario:
+Train one V3 scenario:
 
 ```bash
 python -m src.training.train --version v3 --scenario baseline_v3
 ```
 
-Train all V3 scenarios sequentially:
+Train all V3 scenarios:
 
 ```bash
 python -m src.training.train --version v3 --all-v3
 ```
 
-Available V3 scenarios: `baseline_v3`, `winter_peak`, `summer_surplus`, `grid_stress`, `renewable_volatility`.
-
-### Evaluation
-
-Evaluate a single V3 scenario (requires a trained model):
+Evaluate one V3 scenario:
 
 ```bash
 python -m src.training.evaluate --version v3 --scenario baseline_v3
@@ -270,55 +148,136 @@ Evaluate all V3 scenarios:
 python -m src.training.evaluate --version v3 --all-v3
 ```
 
-### Dashboard
+Run the V3 dashboard:
 
 ```bash
 streamlit run src/dashboard/app.py
 ```
 
-### V3 output locations
-
-| Artifact | Path |
-|---|---|
-| Q-table model | `results/v3/models/q_table_<scenario>.npy` |
-| Training plot | `results/v3/plots/training_rewards_<scenario>_<date>.png` |
-| Demo episode CSV | `results/v3/demos/smartgrid_v3_demo_episode_<scenario>_<date>.csv` |
-| Evaluation summary | `results/v3/summaries/smartgrid_v3_evaluation_summary_<date>.csv` |
-| Comparison plot | `results/v3/plots/v3_evaluation_comparison_<date>.png` |
+The dashboard reads the latest V3 summaries and demo episode files from `results/v3/`.
 
 ---
 
-## V3.1 optional PSO experiment
+## V3.1 PSO reward tuning feature
 
-V3.1 is an optional and experimental reward-weight tuning experiment. It follows the Particle Swarm Optimization style used in class with `pyswarm`, and uses PSO to tune reward weights for `SmartGridEnvV3`.
+V3.1 is a PSO-based reward-weight tuning feature included in the final V3 branch.
 
-PSO does not replace Q-learning: the learning agent remains the existing tabular `QLearningAgent`, and each PSO particle proposes a candidate V3 reward-weight vector. The V3.0 train, evaluate, and dashboard commands remain unchanged. No external APIs or LLM agents are used.
+It follows the style used in class:
+- `from pyswarm import pso`
+- `numpy`
+- `pandas`
+- `itertools.product`
+- `logging`
+- `contextlib.redirect_stdout`
+- CSV export of optimization results
 
-Run the default baseline experiment:
+Each PSO particle represents a candidate reward-weight vector for `SmartGridEnvV3`. For each candidate vector, the objective function trains a temporary tabular Q-learning agent and evaluates it greedily. Since `pyswarm` minimizes the objective, the implementation minimizes negative fitness.
 
-```bash
-python -m src.optimization.pso_reward_tuning --scenario baseline_v3
-```
+V3.1 does not replace the main V3 training or evaluation pipeline. It is an additional optimization layer for controlled reward-weight experiments.
 
-Run a faster smoke experiment:
+Smoke command:
 
 ```bash
 python -m src.optimization.pso_reward_tuning --scenario baseline_v3 --episodes 50 --maxiter 2 --swarmsizes 3 --omegas 0.5 --phips 1.0 --phigs 1.0
 ```
 
-V3.1 outputs are saved under `results/v3_1/`.
+Standard command:
+
+```bash
+python -m src.optimization.pso_reward_tuning --scenario baseline_v3
+```
 
 ---
 
-## V3 development
+## Outputs
 
-`v3-dev` is the development branch for SmartGrid-ES V3.
+V3 outputs are saved under:
 
-V3 adds synthetic CSV time series, JSON scenarios, fuzzy energy risk, richer metrics, and a V3-specific dashboard. The fuzzy risk value is not included in the initial `observation_space`, so the agent still learns from the discrete environment state without risk as an input feature.
+| Output type | Folder |
+|---|---|
+| Q-table models | `results/v3/models/` |
+| Training and comparison plots | `results/v3/plots/` |
+| Demo episode CSV files | `results/v3/demos/` |
+| Evaluation summaries | `results/v3/summaries/` |
 
-Fuzzy risk is used as a metric, a reward penalty, and a dashboard visualization. V3 keeps tabular Q-learning for interpretability and does not use external APIs or LLM-based agents.
+V3.1 PSO outputs are saved under:
 
-V3 uses a separate `src/training/compare_v2_v3.py` script for V2/V3 comparison instead of adding a selector to the dashboard.
+| Output type | Folder |
+|---|---|
+| PSO result CSV files | `results/v3_1/summaries/` |
+| Best reward-weight JSON files | `results/v3_1/best_configs/` |
+| PSO fitness plots | `results/v3_1/plots/` |
+
+Representative V3 and V3.1 outputs are included so the final branch can be inspected without rerunning every experiment.
+
+---
+
+## V2 context
+
+V2 is kept as useful historical context and remains part of the repository.
+
+V2 introduced:
+- scenario-based environment construction through `src/envs/factory.py`,
+- wrapper-based behavior changes,
+- comparative evaluation across scenarios,
+- CSV and plot outputs,
+- and an earlier dashboard workflow.
+
+The V2 scenarios are:
+- `baseline`
+- `winter`
+- `summer`
+- `demand_noise`
+- `battery_loss`
+- `combined_v2`
+
+The V2 wrappers are:
+- `SeasonWrapper`
+- `DemandNoiseWrapper`
+- `BatteryLossWrapper`
+- `RewardShapingWrapper`
+
+V2 helped establish the experimentation workflow, but V3 is the current final version used for the main project delivery.
+
+---
+
+## Installation
+
+Clone the final V3 development branch and install the required packages:
+
+```bash
+git clone -b v3-dev https://github.com/jaimeeblancoo/smartgrid-rl-es.git
+cd smartgrid-rl-es
+python -m venv .venv
+```
+
+On Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+On Linux or macOS:
+
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+---
+
+## Dependencies
+
+The project uses:
+- `gymnasium`
+- `numpy`
+- `matplotlib`
+- `pandas`
+- `streamlit`
+- `pyswarm`
+
+No external APIs are required.
 
 ---
 
@@ -326,208 +285,40 @@ V3 uses a separate `src/training/compare_v2_v3.py` script for V2/V3 comparison i
 
 ```text
 smartgrid-rl-es/
-├── .gitignore
 ├── README.md
 ├── requirements.txt
 ├── data/
-│   └── README_data.md
-├── src/
-│   ├── agents/
-│   │   └── qlearning_agent.py
-│   ├── dashboard/
-│   │   └── app.py
-│   ├── envs/
-│   │   ├── factory.py
-│   │   └── smartgrid_env.py
-│   ├── training/
-│   │   ├── config.py
-│   │   ├── evaluate.py
-│   │   └── train.py
-│   ├── utils/
-│   │   ├── io_helpers.py
-│   │   ├── logger.py
-│   │   └── plotting.py
-│   └── wrappers/
-│       ├── season_wrapper.py
-│       ├── demand_noise_wrapper.py
-│       ├── battery_loss_wrapper.py
-│       └── reward_shaping_wrapper.py
-└── results/
-    ├── demos/
-    ├── logs/
-    ├── models/
-    ├── plots/
-    └── summaries/
+│   ├── scenarios/
+│   └── timeseries/
+├── results/
+│   ├── v3/
+│   └── v3_1/
+├── scripts/
+└── src/
+    ├── agents/
+    ├── dashboard/
+    ├── envs/
+    ├── optimization/
+    ├── training/
+    ├── utils/
+    └── wrappers/
 ```
 
 ---
 
-## Installation
+## Limitations
 
-Clone the repository and install the required packages:
-
-```bash
-git clone -b v2-dev https://github.com/jaimeeblancoo/smartgrid-rl-es.git
-cd smartgrid-rl-es
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### On Windows PowerShell
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-### On Ubuntu / Linux
-
-```bash
-source .venv/bin/activate
-
-python -m src.training.train --scenario baseline
-python -m src.training.train --scenario combined_v2
-python -m src.training.evaluate
-streamlit run src/dashboard/app.py
-```
-
----
-
-## Dependencies
-
-The project currently uses:
-- `gymnasium`
-- `numpy`
-- `matplotlib`
-- `pandas`
-- `streamlit`
-
----
-
-## Outputs generated by V2
-
-After running training and evaluation, the repository can generate the following types of outputs:
-
-### Models
-Stored in:
-
-```text
-results/models/
-```
-
-Example:
-- `q_table_baseline.npy`
-
-### Training plots
-Stored in:
-
-```text
-results/plots/
-```
-
-Examples:
-- `training_rewards_baseline.png`
-- `evaluation_comparison_YYYY-MM-DD.png`
-
-### Demo episode CSV files
-Stored in:
-
-```text
-results/demos/
-```
-
-Examples:
-- `smartgrid_demo_episode_baseline_YYYY-MM-DD.csv`
-- `smartgrid_demo_episode_combined_v2_YYYY-MM-DD.csv`
-
-These files store step-by-step episode data such as:
-- battery level,
-- demand,
-- renewable generation,
-- selected action,
-- reward,
-- grid usage,
-- covered demand,
-- and unmet demand.
-
-### Evaluation summary CSV files
-Stored in:
-
-```text
-results/summaries/
-```
-
-Example:
-- `smartgrid_evaluation_summary_YYYY-MM-DD.csv`
-
-These files summarize metrics by scenario, such as:
-- average reward,
-- average coverage,
-- average grid energy bought,
-- average final battery level,
-- and average sold energy.
-
----
-
-## Main results and conclusions
-
-The V2 version of SmartGrid-ES provides a more complete experimentation workflow than V1.
-
-By introducing scenarios, wrappers, comparative evaluation, and a dashboard, the project can now be used not only to train an agent, but also to compare behavior across different operating conditions.
-
-The generated outputs make it possible to inspect:
-- how reward changes across scenarios,
-- how much demand is covered,
-- how often the grid is used,
-- and how battery-related effects influence performance.
-
-In particular, the `combined_v2` scenario is useful because it brings together several sources of difficulty in a single setup, making it a better approximation of a more realistic decision environment than the baseline case.
-
-Even though the environment is still intentionally simple and discrete, the project now has a solid V2 structure that is easy to explain, test, and extend. This makes it a good foundation for a future V3 with richer dynamics and possibly more realistic data or environment design.
-
----
-
-## Notes about data
-
-V2 does **not** use:
-- JSON scenario files,
-- real external data inputs,
-- or external live datasets.
-
-All behavior in V2 is defined directly in Python code through:
-- the base environment,
-- scenario construction,
-- and wrappers.
-
-This keeps the project small, controlled, and appropriate for a second academic iteration.
-
----
-
-## Future direction
-
-The current V2 is meant to remain:
-- simple,
-- functional,
-- readable,
-- and easy to extend.
-
-A future V3 could move toward:
-- richer custom environments,
-- more realistic system dynamics,
-- external data integration,
-- or more advanced agent designs.
+- The environment is intentionally discrete and simplified.
+- CSV data are synthetic and controlled, not live real-world data.
+- V3 does not implement real multi-agent reinforcement learning.
+- V3 does not use external APIs or LLM agents.
+- Markov mode is not implemented in the current V3 delivery.
+- PSO tuning is computationally more expensive than normal training, so it is mainly used for controlled reward-weight experiments.
 
 ---
 
 ## Summary
 
-SmartGrid-ES V2 is a small but structured reinforcement learning project that extends the original V1 base with:
-- scenario-based environment construction,
-- wrapper-based modifications,
-- comparative evaluation,
-- CSV and plot outputs,
-- and a lightweight dashboard.
+SmartGrid-ES V3 is the final main version of the project. It provides a local and reproducible academic RL pipeline built around `SmartGridEnvV3`, synthetic scenario data, fuzzy energy risk, tabular Q-learning, evaluation outputs, a dashboard and an optional V3.1 PSO reward-weight tuning feature.
 
-Its main purpose is to provide a clean academic RL pipeline that is simple enough to understand and defend, but rich enough to show meaningful progression beyond the first version.
+The project remains deliberately interpretable: the agent is tabular, the state and actions are discrete, the data are synthetic and the outputs are designed for inspection through CSV files, plots and the dashboard.
