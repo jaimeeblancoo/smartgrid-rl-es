@@ -122,7 +122,7 @@ Each scenario uses:
 - a training CSV time series,
 - an evaluation CSV time series.
 
-The scenario loader validates the JSON configuration and the referenced CSV files before constructing the V3 environment.
+The scenario and time-series loaders validate the JSON configuration and the referenced CSV files before constructing the V3 environment.
 
 ## Training and evaluation
 
@@ -262,23 +262,23 @@ streamlit run src/dashboard/app.py
 
 ```text
 smartgrid-rl-es/
-|-- README.md
-|-- requirements.txt
-|-- data/
-|   |-- scenarios/
-|   `-- timeseries/
-|-- results/
-|   |-- v3/
-|   `-- v3_1/
-|-- scripts/
-`-- src/
-    |-- agents/
-    |-- dashboard/
-    |-- envs/
-    |-- optimization/
-    |-- training/
-    |-- utils/
-    `-- wrappers/
+├── README.md
+├── requirements.txt
+├── data/
+│   ├── scenarios/
+│   └── timeseries/
+├── results/
+│   ├── v3/
+│   └── v3_1/
+├── scripts/
+└── src/
+    ├── agents/
+    ├── dashboard/
+    ├── envs/
+    ├── optimization/
+    ├── training/
+    ├── utils/
+    └── wrappers/
 ```
 
 ## Scope and limitations
