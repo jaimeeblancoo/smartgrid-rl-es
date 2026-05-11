@@ -1,0 +1,43 @@
+{
+  "scenario": "baseline_v3",
+  "best_hyperparameters": {
+    "swarmsize": 3,
+    "omega": 0.5,
+    "phip": 1.0,
+    "phig": 1.0,
+    "maxiter": 2,
+    "episodes": 50
+  },
+  "best_fitness": -169.03579856580632,
+  "objective_minimum": 169.03579856580632,
+  "reward_weights": {
+    "demand_covered": 1.6658046374418274,
+    "unmet_demand": -7.274796783574004,
+    "grid_bought": -0.23631344886591044,
+    "sold": 0.45862614636590904,
+    "invalid_action": -0.7829240336596026,
+    "wasted_renewable": -0.19834941966988118,
+    "risk": -0.0396778799006579
+  },
+  "metrics": {
+    "avg_reward": -150.3463878068618,
+    "avg_coverage": 0.9485530546623794,
+    "avg_unmet_demand": 16.0,
+    "avg_grid_bought": 134.0,
+    "avg_sold": 19.0,
+    "avg_wasted_renewable": 5.0,
+    "avg_battery_end": 1.0,
+    "avg_risk_score": 65.85317460317458,
+    "invalid_action_rate": 0.11904761904761904
+  },
+  "vector_order": [
+    "demand_covered",
+    "unmet_demand",
+    "grid_bought",
+    "sold",
+    "invalid_action",
+    "wasted_renewable",
+    "risk"
+  ],
+  "note": "pyswarm minimizes the objective, so the script minimizes negative fitness."
+}
