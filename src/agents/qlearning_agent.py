@@ -82,4 +82,11 @@ class QLearningAgent:
 
     def load(self, path: str | Path) -> None:
         """Load a previously saved Q-table from disk."""
-        self.q_table = np.load(Path(path))
+        q_table = np.load(Path(path))
+        expected_shape = self.state_shape + (self.n_actions,)
+        if q_table.shape != expected_shape:
+            raise ValueError(
+                f"Loaded Q-table shape {q_table.shape} does not match "
+                f"expected shape {expected_shape}."
+            )
+        self.q_table = q_table
