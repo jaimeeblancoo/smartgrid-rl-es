@@ -167,6 +167,8 @@ streamlit run src/dashboard/app.py
 
 V3.1 adds an optional optimization layer based on Particle Swarm Optimization. Q-learning remains the main learning algorithm: PSO does not control the environment directly and does not replace the agent. Instead, PSO searches for reward-weight configurations used by `SmartGridEnvV3`.
 
+Because PSO is an optional optimization experiment rather than the main learning pipeline, its outputs are stored separately under `results/v3_1/`. The main V3 training and evaluation artifacts remain under `results/v3/`.
+
 Each PSO particle represents the following reward-weight vector:
 
 ```text
@@ -197,6 +199,10 @@ python -m src.optimization.pso_reward_tuning --scenario baseline_v3
 ## Results and outputs
 
 Representative artifacts are included so the reviewer can inspect results without retraining every experiment.
+
+Results under `results/v3/` correspond to the main final pipeline: `SmartGridEnvV3`, tabular Q-learning, scenario evaluation and dashboard outputs.
+
+Results under `results/v3_1/` correspond only to the optional PSO reward-weight tuning experiment. They are separated from the main V3 outputs because PSO is an optimization layer for reward weights, not the main learning algorithm.
 
 | Output type | Folder |
 |---|---|
