@@ -308,7 +308,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--scenario",
-        default="baseline_v3",
+        default=None,
         help="Scenario name to train (default: baseline_v3 for V3, baseline for V2).",
     )
     parser.add_argument(
@@ -319,10 +319,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.version == "v2":
-        run_training_pipeline(args.scenario)
+        scenario = args.scenario or "baseline"
+        run_training_pipeline(scenario)
     else:
+        scenario = args.scenario or "baseline_v3"
         if args.all_v3:
             for sc in V3_SCENARIOS:
                 run_training_pipeline_v3(sc)
         else:
-            run_training_pipeline_v3(args.scenario)
+            run_training_pipeline_v3(scenario)
