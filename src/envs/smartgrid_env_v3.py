@@ -94,6 +94,9 @@ class SmartGridEnvV3(gym.Env):
 
     def step(self, action: int):
         """Apply one V3 action and return the transition tuple."""
+        if not self.action_space.contains(action):
+            raise ValueError(f"Action outside the action space: {action}")
+
         if self.step_idx >= len(self.timeseries) or self.step_idx >= self.max_steps:
             obs = self._build_observation()
             row = self._current_row()
