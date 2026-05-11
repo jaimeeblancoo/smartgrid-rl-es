@@ -10,6 +10,14 @@ RESULTS_DIR = Path("results")
 SUMMARIES_DIR = RESULTS_DIR / "v3" / "summaries"
 DEMOS_DIR = RESULTS_DIR / "v3" / "demos"
 
+ACTION_NAMES = {
+    0: "Use battery",
+    1: "Buy from grid",
+    2: "Store surplus",
+    3: "Sell surplus",
+    4: "Hold",
+}
+
 
 def get_latest_summary_file() -> Path | None:
     """Return the newest V3 evaluation summary CSV, if one exists."""
@@ -31,6 +39,15 @@ def get_demo_files() -> list[Path]:
 def load_csv(path: Path) -> pd.DataFrame:
     """Load a dashboard CSV file into a DataFrame."""
     return pd.read_csv(path)
+
+
+def add_action_names(df: pd.DataFrame) -> pd.DataFrame:
+    """Add human-readable V3 action names when an action column is present."""
+    if "action" not in df.columns:
+        return df
+    df = df.copy()
+    df["action_name"] = df["action"].map(ACTION_NAMES).fillna("Unknown")
+    return df
 
 
 def main() -> None:
@@ -91,7 +108,7 @@ def main() -> None:
     )
 
     selected_demo_path = DEMOS_DIR / selected_demo_name
-    demo_df = load_csv(selected_demo_path)
+    demo_df = add_action_names(load_csv(selected_demo_path))
 
     st.caption(f"Loaded file: {selected_demo_path.name}")
     st.dataframe(demo_df, use_container_width=True)
@@ -107,7 +124,10 @@ def main() -> None:
 
     if "action" in demo_df.columns:
         st.subheader("Actions taken")
-        st.bar_chart(demo_df["action"].value_counts().sort_index())
+        if "action_name" in demo_df.columns:
+            st.bar_chart(demo_df["action_name"].value_counts())
+        else:
+            st.bar_chart(demo_df["action"].value_counts().sort_index())
 
 
 if __name__ == "__main__":
