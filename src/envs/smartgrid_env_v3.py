@@ -1,4 +1,10 @@
-"""SmartGridEnvV3 - Gymnasium environment for the V3 milestone."""
+"""Gymnasium environment for the final V3 smart-grid pipeline.
+
+``SmartGridEnvV3`` combines JSON scenario configuration with synthetic CSV time
+series. It exposes a discrete observation space for tabular Q-learning and
+keeps fuzzy risk as an auxiliary signal in ``info`` rather than as part of the
+observation.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -67,7 +73,15 @@ class SmartGridEnvV3(gym.Env):
         self.step_idx = 0
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
-        """Reset the episode and return the first V3 observation and risk info."""
+        """Reset the episode and return the first V3 observation and risk info.
+
+        Args:
+            seed: Optional Gymnasium seed for reproducible reset behavior.
+            options: Optional Gymnasium reset options, currently unused.
+
+        Returns:
+            Tuple containing the initial observation and an ``info`` dictionary.
+        """
         if seed is not None:
             self._rng = np.random.default_rng(seed)
             super().reset(seed=seed)
@@ -93,7 +107,19 @@ class SmartGridEnvV3(gym.Env):
         return obs, info
 
     def step(self, action: int):
-        """Apply one V3 action and return the transition tuple."""
+        """Apply one V3 action and return the transition tuple.
+
+        Args:
+            action: Discrete V3 action index.
+
+        Returns:
+            Gymnasium transition tuple ``(observation, reward, terminated,
+            truncated, info)``. ``info`` includes energy-balance metrics and the
+            fuzzy risk score.
+
+        Raises:
+            ValueError: If ``action`` is outside the discrete action space.
+        """
         if not self.action_space.contains(action):
             raise ValueError(f"Action outside the action space: {action}")
 
@@ -139,6 +165,12 @@ class SmartGridEnvV3(gym.Env):
         return obs, float(reward), terminated, truncated, info
 
     def _current_row(self):
+        """Return the current synthetic time-series row.
+
+        Returns:
+            Pandas Series for the current step, clamped to the last row when the
+            episode has reached the end of the CSV.
+        """
         idx = min(self.step_idx, len(self.timeseries) - 1)
         return self.timeseries.iloc[idx]
 

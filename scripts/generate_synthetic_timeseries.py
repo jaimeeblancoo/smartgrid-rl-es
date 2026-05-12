@@ -1,4 +1,9 @@
-"""Generate synthetic time-series CSVs for V3 scenarios."""
+"""Generate synthetic time-series CSV files for V3 scenarios.
+
+The generated files provide discrete JSON/CSV scenario inputs for
+``SmartGridEnvV3``. They are synthetic academic data, not real-world market or
+grid measurements.
+"""
 from __future__ import annotations
 
 import csv
@@ -8,6 +13,14 @@ import numpy as np
 
 
 def _baseline_demand(hour: int) -> int:
+    """Return the baseline discrete demand level for a given hour.
+
+    Args:
+        hour: Hour of day in the range 0..23.
+
+    Returns:
+        Discrete demand level in the range 0..3.
+    """
     if 0 <= hour < 6:
         return 1
     if 6 <= hour < 9:
@@ -20,6 +33,14 @@ def _baseline_demand(hour: int) -> int:
 
 
 def _baseline_renewable(hour: int) -> int:
+    """Return the baseline discrete renewable generation level by hour.
+
+    Args:
+        hour: Hour of day in the range 0..23.
+
+    Returns:
+        Discrete renewable generation level in the range 0..3.
+    """
     if 6 <= hour < 9:
         return 1
     if 9 <= hour < 16:
@@ -30,6 +51,14 @@ def _baseline_renewable(hour: int) -> int:
 
 
 def _baseline_price(hour: int) -> int:
+    """Return the baseline discrete grid price level by hour.
+
+    Args:
+        hour: Hour of day in the range 0..23.
+
+    Returns:
+        Discrete price level in the range 0..2.
+    """
     if 16 <= hour < 21:
         return 2
     if 9 <= hour < 16:
@@ -38,6 +67,14 @@ def _baseline_price(hour: int) -> int:
 
 
 def _baseline_weather(rng: np.random.Generator) -> int:
+    """Sample a baseline synthetic weather level.
+
+    Args:
+        rng: NumPy random generator used for reproducible sampling.
+
+    Returns:
+        Discrete weather level in the range 0..2.
+    """
     return int(rng.choice([1, 1, 1, 0, 2], p=[0.4, 0.2, 0.2, 0.1, 0.1]))
 
 
@@ -50,6 +87,21 @@ def _apply_scenario_profile(
     weather: int,
     rng: np.random.Generator,
 ) -> tuple[int, int, int, int]:
+    """Apply scenario-specific adjustments to one synthetic time-series row.
+
+    Args:
+        scenario: Scenario identifier such as ``winter_peak`` or
+            ``summer_surplus``.
+        hour: Hour of day in the range 0..23.
+        demand: Baseline discrete demand level.
+        renewable: Baseline discrete renewable generation level.
+        price: Baseline discrete price level.
+        weather: Baseline discrete weather level.
+        rng: NumPy random generator used by stochastic scenarios.
+
+    Returns:
+        Tuple with clipped ``(demand, renewable, price, weather)`` levels.
+    """
     if scenario == "winter_peak":
         if hour < 8 or hour >= 17:
             demand += 1
@@ -90,6 +142,17 @@ def generate(
     demand_jitter: float = 0.10,
     renewable_jitter: float = 0.15,
 ) -> None:
+    """Generate and save one synthetic V3 time-series CSV file.
+
+    Args:
+        out_path: Destination CSV path.
+        days: Number of 24-hour days to generate.
+        seed: Random seed used for reproducible jitter and weather sampling.
+        scenario: Scenario profile applied on top of the baseline profile.
+        demand_jitter: Probability of adding a one-level demand perturbation.
+        renewable_jitter: Probability of adding a one-level renewable
+            perturbation.
+    """
     rng = np.random.default_rng(seed)
     rows = []
     for step in range(days * 24):
@@ -115,6 +178,7 @@ def generate(
 
 
 def main() -> None:
+    """Generate train and evaluation CSV files for all configured V3 scenarios."""
     base = Path("data/timeseries")
     scenario_seeds: dict[str, tuple[int, int]] = {
         "baseline": (0, 1),

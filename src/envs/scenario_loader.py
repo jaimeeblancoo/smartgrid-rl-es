@@ -18,10 +18,12 @@ REQUIRED_REWARD_KEYS = (
 
 
 def _repo_root() -> Path:
+    """Return the repository root inferred from this source file."""
     return Path(__file__).resolve().parents[2]
 
 
 def _resolve_from_repo_root(path_value: str | Path) -> Path:
+    """Resolve a path relative to the repository root when needed."""
     path = Path(path_value)
     if path.is_absolute():
         return path

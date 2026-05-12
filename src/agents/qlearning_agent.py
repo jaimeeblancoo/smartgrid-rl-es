@@ -1,3 +1,9 @@
+"""Tabular Q-learning agent for discrete SmartGrid environments.
+
+The implementation stores a NumPy Q-table whose shape is the discrete
+observation-space shape plus one action dimension. It is used by both the V2
+environment and the V3 JSON/CSV scenario pipeline.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -47,18 +53,40 @@ class QLearningAgent:
         self._rng = np.random.default_rng(seed)
 
     def choose_action(self, state) -> int:
-        """Return an epsilon-greedy action for the current state."""
+        """Return an epsilon-greedy action for the current state.
+
+        Args:
+            state: Discrete observation index compatible with the Q-table.
+
+        Returns:
+            Action index sampled from the action space.
+        """
         if self._rng.random() < self.epsilon:
             return int(self._rng.integers(0, self.n_actions))
         return self.greedy_action(state)
 
     def greedy_action(self, state) -> int:
-        """Return the action with the largest learned Q-value."""
+        """Return the action with the largest learned Q-value.
+
+        Args:
+            state: Discrete observation index compatible with the Q-table.
+
+        Returns:
+            Greedy action index for the provided state.
+        """
         state_t = tuple(int(x) for x in state)
         return int(np.argmax(self.q_table[state_t]))
 
     def update(self, state, action: int, reward: float, next_state, done: bool) -> None:
-        """Apply the standard tabular Q-learning update rule."""
+        """Apply the standard tabular Q-learning update rule.
+
+        Args:
+            state: Previous discrete observation.
+            action: Action taken from ``state``.
+            reward: Scalar reward returned by the environment.
+            next_state: Next discrete observation.
+            done: Whether the transition ended the episode.
+        """
         s = tuple(int(x) for x in state)
         ns = tuple(int(x) for x in next_state)
         current_q = self.q_table[s + (action,)]
@@ -71,17 +99,32 @@ class QLearningAgent:
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
     def get_policy(self) -> np.ndarray:
-        """Return the greedy action index for every discrete state."""
+        """Return the greedy action index for every discrete state.
+
+        Returns:
+            Array with shape ``state_shape`` containing greedy action indices.
+        """
         return np.argmax(self.q_table, axis=-1)
 
     def save(self, path: str | Path) -> None:
-        """Save the Q-table as a NumPy binary file."""
+        """Save the Q-table as a NumPy binary file.
+
+        Args:
+            path: Destination ``.npy`` file path.
+        """
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         np.save(path, self.q_table)
 
     def load(self, path: str | Path) -> None:
-        """Load a previously saved Q-table from disk."""
+        """Load a previously saved Q-table from disk.
+
+        Args:
+            path: Source ``.npy`` file path.
+
+        Raises:
+            ValueError: If the loaded Q-table shape does not match the agent.
+        """
         q_table = np.load(Path(path))
         expected_shape = self.state_shape + (self.n_actions,)
         if q_table.shape != expected_shape:

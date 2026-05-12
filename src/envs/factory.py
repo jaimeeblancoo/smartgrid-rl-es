@@ -1,3 +1,9 @@
+"""Factory helpers for constructing SmartGrid-ES environments.
+
+The factory is used by the V2 training and evaluation scripts to assemble the
+base environment with optional wrappers for seasonal effects, demand noise,
+battery losses and reward shaping.
+"""
 from __future__ import annotations
 
 from src.envs.smartgrid_env import SmartGridEnv

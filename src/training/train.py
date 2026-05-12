@@ -1,3 +1,9 @@
+"""Training entry points for SmartGrid-ES agents.
+
+The module supports the legacy V2 comparison scenarios and the final V3
+pipeline based on ``SmartGridEnvV3``, synthetic JSON/CSV scenarios and tabular
+Q-learning. It writes trained Q-tables, reward plots and demo episode CSVs.
+"""
 from __future__ import annotations
 
 import argparse
@@ -25,10 +31,18 @@ def current_run_date() -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
 
-# ─── V2 training (unchanged) ──────────────────────────────────────────────────
+# V2 training.
 
 def train_agent(scenario_name: str):
-    """Train a tabular Q-learning agent on one V2 scenario."""
+    """Train a tabular Q-learning agent on one V2 scenario.
+
+    Args:
+        scenario_name: Name of the configured V2 scenario.
+
+    Returns:
+        Tuple containing the trained agent, reward history, environment and
+        training configuration.
+    """
     cfg = get_training_config_for_scenario(scenario_name)
     env = build_env_from_scenario(
         scenario_name=scenario_name,
@@ -89,7 +103,17 @@ def train_agent(scenario_name: str):
 
 
 def save_demo_episode(env, agent: QLearningAgent, scenario_name: str, seed: int) -> Path:
-    """Run one greedy V2 demo episode and save it as a CSV file."""
+    """Run one greedy V2 demo episode and save it as a CSV file.
+
+    Args:
+        env: V2 Gymnasium-compatible environment.
+        agent: Trained tabular Q-learning agent.
+        scenario_name: Scenario name used in the output filename.
+        seed: Reset seed for reproducible demo generation.
+
+    Returns:
+        Path to the saved demo CSV.
+    """
     original_epsilon = agent.epsilon
     agent.epsilon = 0.0
     rows = []
@@ -126,7 +150,11 @@ def save_demo_episode(env, agent: QLearningAgent, scenario_name: str, seed: int)
 
 
 def run_training_pipeline(scenario_name: str) -> None:
-    """Run the complete V2 training pipeline for one scenario."""
+    """Run the complete V2 training pipeline for one scenario.
+
+    Args:
+        scenario_name: Name of the configured V2 scenario.
+    """
     agent, rewards_history, env, cfg = train_agent(scenario_name=scenario_name)
 
     model_path = Path("results/models") / f"q_table_{scenario_name}.npy"
@@ -144,7 +172,7 @@ def run_training_pipeline(scenario_name: str) -> None:
     print(f"Demo episode CSV saved to: {demo_path}")
 
 
-# ─── V3 training ──────────────────────────────────────────────────────────────
+# V3 training.
 
 def train_agent_v3(scenario_name: str):
     """Train a tabular Q-learning agent on a V3 scenario loaded from JSON.
@@ -217,6 +245,15 @@ def save_demo_episode_v3(
 
     The demo includes the V3 risk fields so the dashboard can visualize the
     same risk signal used by the reward function.
+
+    Args:
+        env: V3 Gymnasium environment.
+        agent: Trained tabular Q-learning agent.
+        scenario_name: Scenario name used in the output filename.
+        seed: Reset seed for reproducible demo generation.
+
+    Returns:
+        Path to the saved demo CSV.
     """
     original_epsilon = agent.epsilon
     agent.epsilon = 0.0
@@ -266,7 +303,11 @@ def save_demo_episode_v3(
 
 
 def run_training_pipeline_v3(scenario_name: str) -> None:
-    """Run the complete V3 training pipeline for one scenario."""
+    """Run the complete V3 training pipeline for one scenario.
+
+    Args:
+        scenario_name: Name of the configured V3 scenario.
+    """
     print(f"\nTraining V3 scenario: {scenario_name}")
     agent, rewards_history, env, cfg = train_agent_v3(scenario_name=scenario_name)
 
@@ -296,7 +337,7 @@ def run_training_pipeline_v3(scenario_name: str) -> None:
     print(f"Demo episode CSV saved to: {demo_path}")
 
 
-# ─── Entry point ──────────────────────────────────────────────────────────────
+# Entry point.
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SmartGrid-ES training script.")

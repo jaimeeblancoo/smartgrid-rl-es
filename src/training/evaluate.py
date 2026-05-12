@@ -1,3 +1,8 @@
+"""Evaluation entry points for trained SmartGrid-ES agents.
+
+The module evaluates saved tabular Q-learning models for V2 comparison
+scenarios and V3 JSON/CSV scenarios, then writes summary CSV files and plots.
+"""
 from __future__ import annotations
 
 import argparse
@@ -29,10 +34,17 @@ def current_run_date() -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
 
-# ─── V2 evaluation (unchanged) ────────────────────────────────────────────────
+# V2 evaluation.
 
 def evaluate_agent(scenario_name: str) -> dict[str, float | str]:
-    """Evaluate a trained V2 agent on one scenario."""
+    """Evaluate a trained V2 agent on one scenario.
+
+    Args:
+        scenario_name: Name of the configured V2 scenario.
+
+    Returns:
+        Dictionary of aggregate reward and energy-balance metrics.
+    """
     train_cfg = get_training_config_for_scenario(scenario_name)
     env = build_env_from_scenario(
         scenario_name=scenario_name,
@@ -129,7 +141,7 @@ def main() -> None:
             print(f"- {scenario_name}")
 
 
-# ─── V3 evaluation ────────────────────────────────────────────────────────────
+# V3 evaluation.
 
 def evaluate_agent_v3(scenario_name: str) -> dict[str, float | str]:
     """Evaluate a trained V3 agent using the eval CSV time series.
@@ -223,7 +235,11 @@ def evaluate_agent_v3(scenario_name: str) -> dict[str, float | str]:
 
 
 def main_v3(scenario_names: list[str]) -> None:
-    """Evaluate the selected V3 scenarios and save a combined summary."""
+    """Evaluate the selected V3 scenarios and save a combined summary.
+
+    Args:
+        scenario_names: Names of configured V3 scenarios to evaluate.
+    """
     rows = []
     missing_models = []
 
@@ -266,7 +282,7 @@ def main_v3(scenario_names: list[str]) -> None:
             print(f"- {scenario_name}")
 
 
-# ─── Entry point ──────────────────────────────────────────────────────────────
+# Entry point.
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SmartGrid-ES evaluation script.")

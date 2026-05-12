@@ -21,6 +21,17 @@ RANGED_COLUMNS = {
 
 
 def _validate_numeric_column(df: pd.DataFrame, column: str, csv_path: Path) -> None:
+    """Validate and coerce a required CSV column to discrete integers.
+
+    Args:
+        df: Time-series DataFrame being validated in place.
+        column: Column name to validate.
+        csv_path: Source CSV path used in validation error messages.
+
+    Raises:
+        ValueError: If the column contains missing, non-numeric or
+            non-integer values.
+    """
     numeric_values = pd.to_numeric(df[column], errors="coerce")
     if numeric_values.isna().any():
         raise ValueError(f"Column '{column}' must be numeric in {csv_path.name}.")
@@ -30,6 +41,18 @@ def _validate_numeric_column(df: pd.DataFrame, column: str, csv_path: Path) -> N
 
 
 def _validate_range(df: pd.DataFrame, column: str, lower: int, upper: int, csv_path: Path) -> None:
+    """Validate that a discrete CSV column stays within an expected range.
+
+    Args:
+        df: Time-series DataFrame to validate.
+        column: Column name to check.
+        lower: Inclusive lower bound.
+        upper: Inclusive upper bound.
+        csv_path: Source CSV path used in validation error messages.
+
+    Raises:
+        ValueError: If any row falls outside the expected range.
+    """
     invalid_rows = df[(df[column] < lower) | (df[column] > upper)]
     if not invalid_rows.empty:
         raise ValueError(

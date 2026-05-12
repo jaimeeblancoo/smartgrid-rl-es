@@ -1,3 +1,8 @@
+"""Reward-shaping wrapper for V2 smart-grid experiments.
+
+The wrapper adjusts the scalar reward returned by the base environment without
+changing its transition dynamics or observation space.
+"""
 from __future__ import annotations
 
 import gymnasium as gym
@@ -16,6 +21,15 @@ class RewardShapingWrapper(gym.Wrapper):
         unmet_demand_penalty: float = 1.00,
         invalid_action_penalty: float = 0.25,
     ) -> None:
+        """Create a reward-shaping wrapper.
+
+        Args:
+            env: Base Gymnasium environment to wrap.
+            demand_covered_bonus: Bonus when all demand is covered.
+            battery_bonus: Bonus for covering demand without grid purchases.
+            unmet_demand_penalty: Penalty multiplier for unmet demand.
+            invalid_action_penalty: Penalty applied to invalid actions.
+        """
         super().__init__(env)
         self.demand_covered_bonus = demand_covered_bonus
         self.battery_bonus = battery_bonus

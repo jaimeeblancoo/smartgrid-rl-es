@@ -1,3 +1,9 @@
+"""V2 discrete Gymnasium environment for a simplified smart grid.
+
+This environment is retained for comparison with the final V3 pipeline. It
+uses synthetic Markov-style sampling for demand and renewable generation and a
+tabular discrete observation space.
+"""
 from __future__ import annotations
 
 from typing import Any
@@ -44,7 +50,15 @@ class SmartGridEnv(gym.Env):
         self.current_step = 0
 
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
-        """Reset the episode and sample the initial discrete state."""
+        """Reset the episode and sample the initial discrete state.
+
+        Args:
+            seed: Optional Gymnasium seed for reproducible sampling.
+            options: Optional Gymnasium reset options, currently unused.
+
+        Returns:
+            Tuple containing the initial observation and an ``info`` dictionary.
+        """
         super().reset(seed=seed)
         if seed is not None:
             self._rng = np.random.default_rng(seed)
@@ -71,7 +85,18 @@ class SmartGridEnv(gym.Env):
         return self.state.copy(), info
 
     def step(self, action: int):
-        """Apply one energy-management action and return the next transition."""
+        """Apply one energy-management action and return the next transition.
+
+        Args:
+            action: Discrete action index from the action space.
+
+        Returns:
+            Gymnasium transition tuple ``(observation, reward, terminated,
+            truncated, info)``.
+
+        Raises:
+            ValueError: If ``action`` is outside the discrete action space.
+        """
         if not self.action_space.contains(action):
             raise ValueError(f"Action outside the action space: {action}")
 
@@ -154,6 +179,14 @@ class SmartGridEnv(gym.Env):
         )
 
     def _sample_demand(self, period: int) -> int:
+        """Sample a synthetic V2 demand level for a day period.
+
+        Args:
+            period: Discrete day period in the range 0..3.
+
+        Returns:
+            Discrete demand level in the range 0..2.
+        """
         distributions = {
             0: [0.20, 0.55, 0.25],
             1: [0.15, 0.45, 0.40],
@@ -163,6 +196,14 @@ class SmartGridEnv(gym.Env):
         return int(self._rng.choice([0, 1, 2], p=distributions[period]))
 
     def _sample_renewable(self, period: int) -> int:
+        """Sample a synthetic V2 renewable generation level for a day period.
+
+        Args:
+            period: Discrete day period in the range 0..3.
+
+        Returns:
+            Discrete renewable level in the range 0..2.
+        """
         distributions = {
             0: [0.35, 0.45, 0.20],
             1: [0.15, 0.45, 0.40],

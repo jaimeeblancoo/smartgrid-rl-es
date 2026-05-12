@@ -1,3 +1,8 @@
+"""Battery-loss wrapper for V2 smart-grid experiments.
+
+The wrapper models simple synthetic inefficiencies such as charge loss,
+discharge loss and leakage while keeping observations discrete.
+"""
 from __future__ import annotations
 
 import gymnasium as gym
@@ -18,6 +23,17 @@ class BatteryLossWrapper(gym.Wrapper):
         discharge_loss_prob: float = 0.20,
         leakage_prob: float = 0.12,
     ) -> None:
+        """Create a battery-loss wrapper.
+
+        Args:
+            env: Base Gymnasium environment to wrap.
+            charge_loss_prob: Probability of losing one battery level after
+                storing energy.
+            discharge_loss_prob: Probability of losing one battery level after
+                using stored energy.
+            leakage_prob: Probability of losing one battery level due to
+                passive leakage.
+        """
         super().__init__(env)
         self.charge_loss_prob = charge_loss_prob
         self.discharge_loss_prob = discharge_loss_prob

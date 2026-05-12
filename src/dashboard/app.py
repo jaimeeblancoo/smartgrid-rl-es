@@ -1,3 +1,9 @@
+"""Streamlit dashboard for V3 SmartGrid-ES result files.
+
+The dashboard reads saved V3 evaluation summaries and demo episode CSV files.
+It visualizes tabular Q-learning outputs and the fuzzy risk signal exposed by
+``SmartGridEnvV3`` through the ``info`` dictionary.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -37,12 +43,26 @@ def get_demo_files() -> list[Path]:
 
 
 def load_csv(path: Path) -> pd.DataFrame:
-    """Load a dashboard CSV file into a DataFrame."""
+    """Load a dashboard CSV file into a DataFrame.
+
+    Args:
+        path: CSV file path to load.
+
+    Returns:
+        DataFrame containing the selected dashboard data.
+    """
     return pd.read_csv(path)
 
 
 def add_action_names(df: pd.DataFrame) -> pd.DataFrame:
-    """Add human-readable V3 action names when an action column is present."""
+    """Add human-readable V3 action names when an action column is present.
+
+    Args:
+        df: Demo episode DataFrame.
+
+    Returns:
+        DataFrame with an ``action_name`` column when possible.
+    """
     if "action" not in df.columns:
         return df
     df = df.copy()

@@ -1,3 +1,8 @@
+"""Plotting helpers for SmartGrid-ES result artifacts.
+
+The functions in this module save lightweight Matplotlib figures used by the
+training, evaluation and comparison scripts.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,7 +13,15 @@ import pandas as pd
 
 
 def moving_average(values: Sequence[float], window: int = 50) -> list[float]:
-    """Compute a simple trailing moving average."""
+    """Compute a simple trailing moving average.
+
+    Args:
+        values: Numeric sequence to smooth.
+        window: Maximum number of recent values included in each average.
+
+    Returns:
+        List of averaged values with the same length as ``values``.
+    """
     if not values:
         return []
     output = []
@@ -19,7 +32,12 @@ def moving_average(values: Sequence[float], window: int = 50) -> list[float]:
 
 
 def plot_rewards(rewards: Sequence[float], output_path: str) -> None:
-    """Save a training reward curve with a moving-average line."""
+    """Save a training reward curve with a moving-average line.
+
+    Args:
+        rewards: Per-episode reward history.
+        output_path: Destination image path.
+    """
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(10, 5))
     plt.plot(rewards, label="reward")
@@ -34,7 +52,13 @@ def plot_rewards(rewards: Sequence[float], output_path: str) -> None:
 
 
 def plot_comparison(summary_df: pd.DataFrame, output_path: str) -> None:
-    """Save a bar plot comparing scenario average rewards."""
+    """Save a bar plot comparing scenario average rewards.
+
+    Args:
+        summary_df: Evaluation summary containing ``scenario`` and
+            ``avg_reward`` columns.
+        output_path: Destination image path.
+    """
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(10, 5))
     plt.bar(summary_df["scenario"], summary_df["avg_reward"])

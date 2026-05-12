@@ -3,10 +3,12 @@ from __future__ import annotations
 
 
 def _clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
+    """Clamp a numeric membership value to a closed interval."""
     return max(lower, min(upper, value))
 
 
 def _rising(value: float, start: float, end: float) -> float:
+    """Compute a rising linear fuzzy membership value."""
     if value <= start:
         return 0.0
     if value >= end:
@@ -15,6 +17,7 @@ def _rising(value: float, start: float, end: float) -> float:
 
 
 def _falling(value: float, start: float, end: float) -> float:
+    """Compute a falling linear fuzzy membership value."""
     if value <= start:
         return 1.0
     if value >= end:
@@ -23,6 +26,7 @@ def _falling(value: float, start: float, end: float) -> float:
 
 
 def _triangle(value: float, left: float, center: float, right: float) -> float:
+    """Compute a triangular fuzzy membership value."""
     if value <= left or value >= right:
         return 0.0
     if value == center:

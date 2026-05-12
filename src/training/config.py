@@ -1,8 +1,14 @@
+"""Training and evaluation configuration for SmartGrid-ES pipelines.
+
+The module keeps V2 comparison settings and the final V3 JSON/CSV scenario
+settings in one place. V3 uses scenario-defined episode lengths and tabular
+Q-learning hyperparameters.
+"""
 from __future__ import annotations
 
 from pathlib import Path
 
-# ─── V2 configuration (unchanged) ─────────────────────────────────────────────
+# V2 configuration.
 
 TRAINING_CONFIG = {
     "seed": 42,
@@ -52,7 +58,7 @@ def get_training_config_for_scenario(scenario_name: str) -> dict:
     return cfg
 
 
-# ─── V3 configuration ──────────────────────────────────────────────────────────
+# V3 configuration.
 
 V3_SCENARIOS = [
     "baseline_v3",
@@ -97,7 +103,17 @@ V3_SCENARIO_TRAINING_OVERRIDES = {
 
 
 def get_v3_scenario_path(scenario_name: str) -> Path:
-    """Return the JSON scenario path for a configured V3 scenario."""
+    """Return the JSON scenario path for a configured V3 scenario.
+
+    Args:
+        scenario_name: Name of a configured V3 scenario.
+
+    Returns:
+        Relative path to the scenario JSON file.
+
+    Raises:
+        ValueError: If the scenario name is not configured.
+    """
     if scenario_name not in V3_SCENARIO_PATHS:
         raise ValueError(
             f"Unknown V3 scenario: '{scenario_name}'. "

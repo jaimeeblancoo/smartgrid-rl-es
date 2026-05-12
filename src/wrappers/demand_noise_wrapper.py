@@ -1,3 +1,8 @@
+"""Demand-noise wrapper for V2 smart-grid experiments.
+
+The wrapper injects occasional synthetic demand spikes after environment
+steps, exposing the event through the ``info`` dictionary.
+"""
 from __future__ import annotations
 
 import gymnasium as gym
@@ -18,6 +23,13 @@ class DemandNoiseWrapper(gym.Wrapper):
         spike_probability: float = 0.15,
         spike_size: int = 1,
     ) -> None:
+        """Create a demand-noise wrapper.
+
+        Args:
+            env: Base Gymnasium environment to wrap.
+            spike_probability: Probability of applying a demand spike per step.
+            spike_size: Maximum discrete demand increase applied by a spike.
+        """
         super().__init__(env)
         self.spike_probability = spike_probability
         self.spike_size = spike_size

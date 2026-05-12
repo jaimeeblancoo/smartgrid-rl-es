@@ -1,3 +1,11 @@
+"""Optional V3.1 PSO reward-weight tuning experiment.
+
+This module treats Particle Swarm Optimization as a reward-weight search
+procedure around the main V3 tabular Q-learning pipeline. PSO is not the main
+learning algorithm; each candidate vector trains and evaluates a temporary
+Q-learning agent before the best reward weights are written as experiment
+artifacts.
+"""
 from __future__ import annotations
 
 import argparse
@@ -46,22 +54,52 @@ def current_run_date() -> str:
 
 
 def parse_int_list(value: str) -> list[int]:
-    """Parse a comma-separated CLI argument into integers."""
+    """Parse a comma-separated CLI argument into integers.
+
+    Args:
+        value: Comma-separated string from the command line.
+
+    Returns:
+        Parsed integer list.
+    """
     return [int(item.strip()) for item in value.split(",") if item.strip()]
 
 
 def parse_float_list(value: str) -> list[float]:
-    """Parse a comma-separated CLI argument into floats."""
+    """Parse a comma-separated CLI argument into floats.
+
+    Args:
+        value: Comma-separated string from the command line.
+
+    Returns:
+        Parsed float list.
+    """
     return [float(item.strip()) for item in value.split(",") if item.strip()]
 
 
 def vector_to_reward_weights(vector: np.ndarray) -> dict[str, float]:
-    """Convert a PSO particle vector into V3 reward weights."""
+    """Convert a PSO particle vector into V3 reward weights.
+
+    Args:
+        vector: Particle vector ordered according to ``VECTOR_ORDER``.
+
+    Returns:
+        Reward-weight dictionary accepted by ``SmartGridEnvV3``.
+    """
     return {name: float(value) for name, value in zip(VECTOR_ORDER, vector)}
 
 
 def build_agent(env: SmartGridEnvV3, cfg: dict[str, Any], seed: int) -> QLearningAgent:
-    """Create a Q-learning agent compatible with a V3 environment."""
+    """Create a Q-learning agent compatible with a V3 environment.
+
+    Args:
+        env: V3 environment used to derive observation and action dimensions.
+        cfg: Training hyperparameter configuration.
+        seed: Random seed for the agent.
+
+    Returns:
+        Configured tabular Q-learning agent.
+    """
     return QLearningAgent(
         state_shape=env.observation_space.nvec,
         action_size=env.action_space.n,
@@ -118,7 +156,18 @@ def evaluate_agent(
     reward_weights: dict[str, float],
     seed: int,
 ) -> dict[str, float]:
-    """Evaluate a temporary PSO-trained agent greedily on the eval CSV."""
+    """Evaluate a temporary PSO-trained agent greedily on the eval CSV.
+
+    Args:
+        scenario: V3 scenario name.
+        agent: Temporary tabular Q-learning agent.
+        reward_weights: Candidate reward weights used by the environment.
+        seed: Reset seed for evaluation.
+
+    Returns:
+        Dictionary of aggregate evaluation metrics for one deterministic V3
+        evaluation episode.
+    """
     scenario_path = get_v3_scenario_path(scenario)
     env = SmartGridEnvV3(
         scenario_path=scenario_path,
@@ -193,7 +242,17 @@ def evaluate_candidate(
     episodes: int,
     seed: int,
 ) -> tuple[float, dict[str, float], dict[str, float]]:
-    """Train and evaluate one PSO candidate reward-weight vector."""
+    """Train and evaluate one PSO candidate reward-weight vector.
+
+    Args:
+        vector: Candidate particle vector.
+        scenario: V3 scenario name.
+        episodes: Number of temporary Q-learning episodes to run.
+        seed: Seed used for temporary training and evaluation.
+
+    Returns:
+        Tuple with fitness, reward-weight dictionary and evaluation metrics.
+    """
     reward_weights = vector_to_reward_weights(vector)
     agent = train_temporary_agent(
         scenario=scenario,
@@ -212,7 +271,16 @@ def evaluate_candidate(
 
 
 def make_objective(scenario: str, episodes: int, seed: int):
-    """Create the minimization objective expected by ``pyswarm.pso``."""
+    """Create the minimization objective expected by ``pyswarm.pso``.
+
+    Args:
+        scenario: V3 scenario name.
+        episodes: Number of temporary Q-learning episodes per candidate.
+        seed: Base seed used for reproducibility.
+
+    Returns:
+        Objective function that maps a PSO vector to negative fitness.
+    """
     def objective(vector: np.ndarray) -> float:
         """Return negative fitness because ``pyswarm`` minimizes."""
         fitness, _, _ = evaluate_candidate(
@@ -241,7 +309,26 @@ def create_result_record(
     reward_weights: dict[str, float],
     metrics: dict[str, float],
 ) -> dict[str, Any]:
-    """Create one tabular result row for a PSO hyperparameter combination."""
+    """Create one tabular result row for a PSO hyperparameter combination.
+
+    Args:
+        iteration: Grid-search iteration number.
+        scenario: V3 scenario name.
+        swarmsize: Number of particles used by PSO.
+        omega: PSO inertia coefficient.
+        phip: Particle best-position coefficient.
+        phig: Global best-position coefficient.
+        maxiter: Number of PSO iterations.
+        episodes: Number of temporary Q-learning episodes per candidate.
+        x_optimum: Best particle vector found by PSO.
+        objective_minimum: Minimum objective value returned by ``pyswarm``.
+        fitness_best: Fitness value corresponding to ``x_optimum``.
+        reward_weights: Reward-weight dictionary for ``x_optimum``.
+        metrics: Evaluation metrics for the best candidate.
+
+    Returns:
+        Flat dictionary suitable for conversion to a results DataFrame.
+    """
     record: dict[str, Any] = {
         "iteration": iteration,
         "scenario": scenario,
@@ -265,7 +352,16 @@ def save_outputs(
     scenario: str,
     output_prefix: str | None,
 ) -> tuple[Path, Path, Path]:
-    """Save the V3.1 PSO CSV, best-config JSON and fitness plot."""
+    """Save the V3.1 PSO CSV, best-config JSON and fitness plot.
+
+    Args:
+        results_df: DataFrame with one row per PSO hyperparameter combination.
+        scenario: V3 scenario name used in output filenames.
+        output_prefix: Optional filename prefix from the CLI.
+
+    Returns:
+        Paths to the summary CSV, best-config JSON and fitness plot.
+    """
     date_tag = current_run_date()
     prefix = f"{output_prefix}_" if output_prefix else ""
     summary_path = (
@@ -338,7 +434,14 @@ def save_outputs(
 
 
 def run_pso_grid_search(args: argparse.Namespace) -> tuple[pd.DataFrame, Path, Path, Path]:
-    """Run PSO across the configured hyperparameter grid."""
+    """Run PSO across the configured hyperparameter grid.
+
+    Args:
+        args: Parsed command-line arguments defining the PSO grid.
+
+    Returns:
+        Results DataFrame and paths to the saved output artifacts.
+    """
     swarmsizes = parse_int_list(args.swarmsizes)
     omegas = parse_float_list(args.omegas)
     phips = parse_float_list(args.phips)

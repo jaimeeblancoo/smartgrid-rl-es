@@ -1,3 +1,8 @@
+"""Seasonal wrapper for the V2 smart-grid environment.
+
+The wrapper applies simple synthetic winter or summer adjustments to demand
+and renewable generation while preserving the wrapped Gymnasium API.
+"""
 from __future__ import annotations
 
 import gymnasium as gym
