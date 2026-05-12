@@ -8,6 +8,16 @@ The final delivery branch, `v3-main`, contains the third version of the project:
 
 V3 is the final main version of the project. V1 and V2 are preserved as historical milestones because they document the evolution from a predesigned environment to wrappers and finally to a dedicated custom environment. The project is designed for interpretability, reproducibility and alignment with the Artificial Intelligence course topics.
 
+## Academic report
+
+The final academic report for the V3 delivery is included as a PDF artifact:
+
+```text
+results/smartgrid_es_v3_report.pdf
+```
+
+The report provides the full academic explanation of the V3 design, including the custom Gymnasium environment, observation and action variables, tabular Q-learning setup, reward function, fuzzy risk module, scenario evaluation, final results, dashboard and optional V3.1 PSO reward-weight tuning experiment.
+
 ## Version history
 
 | Branch | Purpose |
@@ -105,6 +115,66 @@ The risk signal is used as:
 1. an evaluation metric,
 2. a reward penalty,
 3. a dashboard visualization signal.
+
+## V3 technical reference
+
+### Observation variables and ranges
+
+| Variable | Range | Meaning |
+|---|---:|---|
+| `battery` | `0..4` | Stored energy level |
+| `demand` | `0..3` | Electricity demand level |
+| `renewable` | `0..3` | Renewable generation level |
+| `price` | `0..2` | Electricity price level |
+| `period` | `0..3` | Time-of-day period |
+| `weather` | `0..2` | Simplified weather condition |
+
+- Observation space: `MultiDiscrete([5, 4, 4, 3, 4, 3])`
+- Action space: `Discrete(5)`
+- Q-table shape: `(5, 4, 4, 3, 4, 3, 5)`
+
+The first six Q-table dimensions correspond to the discrete observation variables, and the final dimension corresponds to the five discrete actions available in V3.
+
+### V3 CSV columns
+
+| Column | Range | Meaning |
+|---|---:|---|
+| `step` | `>= 0` | Hourly index in the synthetic weekly sequence |
+| `hour` | `0..23` | Hour of day |
+| `weather_level` | `0..2` | Simplified weather condition |
+| `demand_level` | `0..3` | Discrete electricity demand level |
+| `renewable_level` | `0..3` | Discrete renewable generation level |
+| `price_level` | `0..2` | Discrete electricity price level |
+
+Each V3 episode contains 168 hourly steps, corresponding to one synthetic week.
+
+### Reward weights
+
+| Reward key | Weight | Purpose |
+|---|---:|---|
+| `demand_covered` | `2.0` | Reward covered demand |
+| `unmet_demand` | `-5.0` | Penalize uncovered demand |
+| `grid_bought` | `-0.8` | Penalize external grid purchases |
+| `sold` | `0.8` | Reward selling surplus energy |
+| `invalid_action` | `-1.5` | Penalize useless or impossible actions |
+| `wasted_renewable` | `-0.5` | Penalize unused renewable surplus |
+| `risk` | `-0.03` | Penalize high fuzzy-risk states |
+
+All final V3 scenarios use the same reward-weight structure, so scenario comparisons are made under a common objective.
+
+### Main evaluation metrics
+
+| Metric | Meaning |
+|---|---|
+| `avg_reward` | Average reward obtained during greedy evaluation |
+| `avg_coverage` | Share of demand covered during evaluation |
+| `avg_unmet_demand` | Average unmet demand |
+| `avg_grid_bought` | Average energy bought from the grid |
+| `avg_sold` | Average surplus energy sold |
+| `avg_wasted_renewable` | Average renewable surplus wasted |
+| `avg_battery_end` | Battery level at the end of the evaluation episode |
+| `avg_risk_score` | Average fuzzy risk score |
+| `invalid_action_rate` | Share of invalid or useless actions |
 
 ## V3 scenarios
 
@@ -206,6 +276,7 @@ Results under `results/v3_1/` correspond only to the optional PSO reward-weight 
 
 | Output type | Folder |
 |---|---|
+| Final academic report | `results/smartgrid_es_v3_report.pdf` |
 | Trained Q-table models | `results/v3/models/` |
 | Training and comparison plots | `results/v3/plots/` |
 | Greedy demo episodes | `results/v3/demos/` |
