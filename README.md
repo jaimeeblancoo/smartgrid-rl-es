@@ -8,6 +8,16 @@ The final delivery branch, `v3-main`, contains the third version of the project:
 
 V3 is the final main version of the project. V1 and V2 are preserved as historical milestones because they document the evolution from a predesigned environment to wrappers and finally to a dedicated custom environment. The project is designed for interpretability, reproducibility and alignment with the Artificial Intelligence course topics.
 
+## Authors
+
+This repository contains the final delivery of an academic group project for the Artificial Intelligence course at CUNEF Universidad.
+
+Project team:
+
+- Jaime Blanco González
+- Alonso Castro
+- Javier Fernández
+
 ## Academic report
 
 The final academic report for the V3 delivery is included as a PDF artifact:
@@ -361,3 +371,7 @@ smartgrid-rl-es/
 - V3 does not use live real-world data, external APIs or LLM agents.
 - PSO is an optional reward-weight tuning experiment, not the main control algorithm.
 - A Markov-chain scenario generator or mode was considered, but it is not part of the final V3 implementation.
+
+## License
+
+This project is released under the MIT License. See the `LICENSE` file for details.
