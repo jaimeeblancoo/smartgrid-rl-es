@@ -230,6 +230,16 @@ Evaluate all V3 scenarios:
 python -m src.training.evaluate --version v3 --all-v3
 ```
 
+## Design notes and limitations
+
+V3 uses deterministic synthetic CSV time series. Each training or evaluation episode follows a fixed 168-hour weekly sequence for the selected scenario. Therefore, one greedy evaluation episode is sufficient to reproduce the scenario metrics because repeated evaluation episodes follow the same sequence from the same initial state.
+
+All V3 scenarios start from the same initial battery level. This is intentional: it makes the scenario comparison fair because differences in the results come from the demand, renewable, price and weather profiles rather than from different initial conditions.
+
+The `weather` variable is included as contextual information in the observation vector. In V3, it does not directly modify the transition or reward equations; instead, it is part of the scenario data and can be used by the agent as a contextual signal correlated with renewable availability and scenario conditions. A future V4 could introduce direct causal weather effects.
+
+The V3.1 PSO module is an optional reward-weight tuning experiment. It demonstrates how an evolutionary algorithm can be connected to the reward design problem, but Q-learning remains the main learning algorithm and PSO does not directly control the environment.
+
 ## Dashboard
 
 The Streamlit dashboard reads V3 evaluation summaries and demo episodes from:
@@ -270,7 +280,13 @@ Smoke command:
 python -m src.optimization.pso_reward_tuning --scenario baseline_v3 --episodes 50 --maxiter 2 --swarmsizes 3 --omegas 0.5 --phips 1.0 --phigs 1.0
 ```
 
-Standard command:
+Final V3.1 artifact command:
+
+```bash
+python -m src.optimization.pso_reward_tuning --scenario baseline_v3 --episodes 250 --maxiter 5 --swarmsizes 5 --omegas 0.5,0.7 --phips 1.0,1.5 --phigs 1.0,1.5
+```
+
+Default command:
 
 ```bash
 python -m src.optimization.pso_reward_tuning --scenario baseline_v3

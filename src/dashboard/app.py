@@ -260,20 +260,19 @@ def main() -> None:
             reward_chart = indexed_summary["avg_reward"]
             st.bar_chart(reward_chart)
 
-        if {"avg_coverage", "avg_risk_score"}.issubset(summary_df.columns):
-            st.subheader("Coverage and fuzzy risk")
-            coverage_risk_df = pd.DataFrame(index=indexed_summary.index)
-            coverage_risk_df["avg_coverage_pct"] = as_percentage_series(
-                indexed_summary["avg_coverage"]
-            )
-            coverage_risk_df["avg_risk_score"] = pd.to_numeric(
-                indexed_summary["avg_risk_score"], errors="coerce"
-            )
-            st.line_chart(coverage_risk_df)
-            st.caption(
-                "Coverage is displayed as a percentage and fuzzy risk as its score; "
-                "they are shown together only for visual inspection."
-            )
+        if "avg_coverage" in summary_df.columns:
+            st.subheader("Average coverage by scenario")
+            coverage_chart = as_percentage_series(indexed_summary["avg_coverage"])
+            coverage_chart.name = "avg_coverage_pct"
+            st.line_chart(coverage_chart)
+            st.caption("Coverage is displayed as a percentage.")
+
+        if "avg_risk_score" in summary_df.columns:
+            st.subheader("Average fuzzy risk by scenario")
+            risk_chart = pd.to_numeric(indexed_summary["avg_risk_score"], errors="coerce")
+            risk_chart.name = "avg_risk_score"
+            st.line_chart(risk_chart)
+            st.caption("Fuzzy risk is a score on a 0-100 scale.")
 
         energy_columns = [
             col
