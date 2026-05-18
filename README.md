@@ -14,9 +14,9 @@ This repository contains the final delivery of an academic group project for the
 
 Project team:
 
-- Jaime Blanco González
-- Alonso Castro
-- Javier Fernández
+- Jaime Blanco-González
+- Alonso Castro-Freibott
+- Javier-Ignacio Fernández-Madrigal
 
 ## Academic report
 
