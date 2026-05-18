@@ -56,7 +56,7 @@ V3 replaces the V2 wrapper-based approach with a dedicated custom Gymnasium envi
 | Reinforcement Learning | Tabular Q-learning agent trained through agent-environment interaction |
 | Gymnasium | Custom `SmartGridEnvV3` environment following the Gymnasium API |
 | Markov Decision Processes | Discrete state representation, action space, transition dynamics and reward function |
-| Fuzzy Logic | Energy-risk score based on fuzzy rules and membership functions |
+| Fuzzy Logic | Energy-risk score implemented with `scikit-fuzzy` rules and membership functions |
 | Evolutionary Algorithms | Optional PSO-based reward-weight tuning experiment |
 | Experimental Evaluation | Scenario comparison through CSV summaries, plots and dashboard visualizations |
 
@@ -112,7 +112,7 @@ The fuzzy risk module estimates operational risk from four V3 variables:
 - renewable generation level
 - price level
 
-It applies membership functions and fuzzy rules to produce an interpretable risk signal.
+It is implemented with `scikit-fuzzy` using `Antecedent`, `Consequent`, membership functions and fuzzy control rules to produce an interpretable risk signal.
 
 | Output | Meaning |
 |---|---|
