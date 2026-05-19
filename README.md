@@ -8,6 +8,26 @@ The final delivery branch, `v3-main`, contains the third version of the project:
 
 V3 is the final main version of the project. V1 and V2 are preserved as historical milestones because they document the evolution from a predesigned environment to wrappers and finally to a dedicated custom environment. The project is designed for interpretability, reproducibility and alignment with the Artificial Intelligence course topics.
 
+## Authors
+
+This repository contains the final delivery of an academic group project for the Artificial Intelligence course at CUNEF Universidad.
+
+Project team:
+
+- Jaime Blanco-González
+- Alonso Castro-Freibott
+- Javier-Ignacio Fernández-Madrigal
+
+## Academic report
+
+The final academic report for the V3 delivery is included as a PDF artifact:
+
+```text
+results/smartgrid_es_v3_report.pdf
+```
+
+The report provides the full academic explanation of the V3 design, including the custom Gymnasium environment, observation and action variables, tabular Q-learning setup, reward function, fuzzy risk module, scenario evaluation, final results, dashboard and optional V3.1 PSO reward-weight tuning experiment.
+
 ## Version history
 
 | Branch | Purpose |
@@ -36,7 +56,7 @@ V3 replaces the V2 wrapper-based approach with a dedicated custom Gymnasium envi
 | Reinforcement Learning | Tabular Q-learning agent trained through agent-environment interaction |
 | Gymnasium | Custom `SmartGridEnvV3` environment following the Gymnasium API |
 | Markov Decision Processes | Discrete state representation, action space, transition dynamics and reward function |
-| Fuzzy Logic | Energy-risk score based on fuzzy rules and membership functions |
+| Fuzzy Logic | Energy-risk score implemented with `scikit-fuzzy` rules and membership functions |
 | Evolutionary Algorithms | Optional PSO-based reward-weight tuning experiment |
 | Experimental Evaluation | Scenario comparison through CSV summaries, plots and dashboard visualizations |
 
@@ -92,7 +112,7 @@ The fuzzy risk module estimates operational risk from four V3 variables:
 - renewable generation level
 - price level
 
-It applies membership functions and fuzzy rules to produce an interpretable risk signal.
+It is implemented with `scikit-fuzzy` using `Antecedent`, `Consequent`, membership functions and fuzzy control rules to produce an interpretable risk signal.
 
 | Output | Meaning |
 |---|---|
@@ -105,6 +125,66 @@ The risk signal is used as:
 1. an evaluation metric,
 2. a reward penalty,
 3. a dashboard visualization signal.
+
+## V3 technical reference
+
+### Observation variables and ranges
+
+| Variable | Range | Meaning |
+|---|---:|---|
+| `battery` | `0..4` | Stored energy level |
+| `demand` | `0..3` | Electricity demand level |
+| `renewable` | `0..3` | Renewable generation level |
+| `price` | `0..2` | Electricity price level |
+| `period` | `0..3` | Time-of-day period |
+| `weather` | `0..2` | Simplified weather condition |
+
+- Observation space: `MultiDiscrete([5, 4, 4, 3, 4, 3])`
+- Action space: `Discrete(5)`
+- Q-table shape: `(5, 4, 4, 3, 4, 3, 5)`
+
+The first six Q-table dimensions correspond to the discrete observation variables, and the final dimension corresponds to the five discrete actions available in V3.
+
+### V3 CSV columns
+
+| Column | Range | Meaning |
+|---|---:|---|
+| `step` | `>= 0` | Hourly index in the synthetic weekly sequence |
+| `hour` | `0..23` | Hour of day |
+| `weather_level` | `0..2` | Simplified weather condition |
+| `demand_level` | `0..3` | Discrete electricity demand level |
+| `renewable_level` | `0..3` | Discrete renewable generation level |
+| `price_level` | `0..2` | Discrete electricity price level |
+
+Each V3 episode contains 168 hourly steps, corresponding to one synthetic week.
+
+### Reward weights
+
+| Reward key | Weight | Purpose |
+|---|---:|---|
+| `demand_covered` | `2.0` | Reward covered demand |
+| `unmet_demand` | `-5.0` | Penalize uncovered demand |
+| `grid_bought` | `-0.8` | Penalize external grid purchases |
+| `sold` | `0.8` | Reward selling surplus energy |
+| `invalid_action` | `-1.5` | Penalize useless or impossible actions |
+| `wasted_renewable` | `-0.5` | Penalize unused renewable surplus |
+| `risk` | `-0.03` | Penalize high fuzzy-risk states |
+
+All final V3 scenarios use the same reward-weight structure, so scenario comparisons are made under a common objective.
+
+### Main evaluation metrics
+
+| Metric | Meaning |
+|---|---|
+| `avg_reward` | Average reward obtained during greedy evaluation |
+| `avg_coverage` | Share of demand covered during evaluation |
+| `avg_unmet_demand` | Average unmet demand |
+| `avg_grid_bought` | Average energy bought from the grid |
+| `avg_sold` | Average surplus energy sold |
+| `avg_wasted_renewable` | Average renewable surplus wasted |
+| `avg_battery_end` | Battery level at the end of the evaluation episode |
+| `avg_risk_score` | Average fuzzy risk score |
+| `invalid_action_rate` | Share of invalid or useless actions |
 
 ## V3 scenarios
 
@@ -150,6 +230,16 @@ Evaluate all V3 scenarios:
 python -m src.training.evaluate --version v3 --all-v3
 ```
 
+## Design notes and limitations
+
+V3 uses deterministic synthetic CSV time series. Each training or evaluation episode follows a fixed 168-hour weekly sequence for the selected scenario. Therefore, one greedy evaluation episode is sufficient to reproduce the scenario metrics because repeated evaluation episodes follow the same sequence from the same initial state.
+
+All V3 scenarios start from the same initial battery level. This is intentional: it makes the scenario comparison fair because differences in the results come from the demand, renewable, price and weather profiles rather than from different initial conditions.
+
+The `weather` variable is included as contextual information in the observation vector. In V3, it does not directly modify the transition or reward equations; instead, it is part of the scenario data and can be used by the agent as a contextual signal correlated with renewable availability and scenario conditions. A future V4 could introduce direct causal weather effects.
+
+The V3.1 PSO module is an optional reward-weight tuning experiment. It demonstrates how an evolutionary algorithm can be connected to the reward design problem, but Q-learning remains the main learning algorithm and PSO does not directly control the environment.
+
 ## Dashboard
 
 The Streamlit dashboard reads V3 evaluation summaries and demo episodes from:
@@ -190,7 +280,13 @@ Smoke command:
 python -m src.optimization.pso_reward_tuning --scenario baseline_v3 --episodes 50 --maxiter 2 --swarmsizes 3 --omegas 0.5 --phips 1.0 --phigs 1.0
 ```
 
-Standard command:
+Final V3.1 artifact command:
+
+```bash
+python -m src.optimization.pso_reward_tuning --scenario baseline_v3 --episodes 250 --maxiter 5 --swarmsizes 5 --omegas 0.5,0.7 --phips 1.0,1.5 --phigs 1.0,1.5
+```
+
+Default command:
 
 ```bash
 python -m src.optimization.pso_reward_tuning --scenario baseline_v3
@@ -206,6 +302,7 @@ Results under `results/v3_1/` correspond only to the optional PSO reward-weight 
 
 | Output type | Folder |
 |---|---|
+| Final academic report | `results/smartgrid_es_v3_report.pdf` |
 | Trained Q-table models | `results/v3/models/` |
 | Training and comparison plots | `results/v3/plots/` |
 | Greedy demo episodes | `results/v3/demos/` |
@@ -290,3 +387,7 @@ smartgrid-rl-es/
 - V3 does not use live real-world data, external APIs or LLM agents.
 - PSO is an optional reward-weight tuning experiment, not the main control algorithm.
 - A Markov-chain scenario generator or mode was considered, but it is not part of the final V3 implementation.
+
+## License
+
+This project is released under the MIT License. See the `LICENSE` file for details.
